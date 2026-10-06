@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sensação e Percepção — Jogo</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root { --card:#ffffff; --accent:#06b6d4; --accent-dark:#0e7490; --accent2:#8b5cf6; --text:#1e1b2e; --muted:#6b7280; }
+  * { box-sizing: border-box; }
+  body, #app { margin: 0; font-family: 'Inter', -apple-system, "Segoe UI", Roboto, Arial, sans-serif; }
+  h1, h2, .badge, .btn { font-family: 'Space Grotesk', 'Inter', sans-serif; }
+  #app {
+    min-height: 100vh; display: flex; align-items: flex-start; justify-content: center; padding: 24px 16px;
+    background:
+      radial-gradient(circle at 15% 15%, rgba(139,92,246,0.22), transparent 42%),
+      radial-gradient(circle at 85% 25%, rgba(6,182,212,0.20), transparent 40%),
+      radial-gradient(circle at 50% 90%, rgba(236,72,153,0.12), transparent 45%),
+      linear-gradient(180deg, #0b0f21 0%, #1a1533 100%);
+    background-attachment: fixed;
+  }
+  .card { position: relative; overflow: hidden; background: var(--card); border-radius: 20px; padding: 30px 22px 26px; max-width: 520px; width: 100%; min-height: 480px; box-shadow: 0 25px 60px rgba(0,0,0,0.45); text-align: center; animation: fadein 0.2s ease; display: flex; flex-direction: column; }
+  .card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 6px; background: linear-gradient(90deg, #06b6d4, #8b5cf6, #ec4899); }
+  @keyframes fadein { from { opacity: 0; transform: translateY(6px);} to { opacity: 1; transform: translateY(0);} }
+  h1 { font-size: 21px; font-weight: 700; color: var(--text); margin: 0 0 10px; line-height: 1.3; }
+  h2 { font-size: 13.5px; font-weight: 600; color: var(--accent2); margin: 0 0 12px; text-transform: uppercase; letter-spacing: 0.06em; }
+  p.lead { color: var(--muted); font-size: 14.5px; line-height: 1.5; margin-bottom: 18px; }
+  .btn { display: inline-block; background: linear-gradient(135deg, #22d3ee, #0891b2); color: white; border: none; padding: 13px 22px; border-radius: 12px; font-size: 15px; font-weight: 600; cursor: pointer; margin: 5px; min-width: 110px; box-shadow: 0 4px 12px rgba(8,145,178,0.35); transition: transform 0.1s, box-shadow 0.15s, filter 0.15s; }
+  .btn:hover { filter: brightness(1.08); }
+  .btn:active { transform: scale(0.97); }
+  .btn:disabled { opacity: 0.35; cursor: default; }
+  .btn.secondary { background: #eef0f6; color: var(--text); box-shadow: none; }
+  .btn.secondary:hover { background: #e2e5f0; filter: none; }
+  .topbar { height: 6px; background: #e9e7f5; border-radius: 999px; overflow: hidden; margin-bottom: 10px; }
+  .topbar-fill { height: 100%; background: linear-gradient(90deg, #06b6d4, #8b5cf6); border-radius: 999px; width: 100%; }
+  .progress { font-size: 11.5px; color: var(--muted); margin-bottom: 4px; text-align: left; font-weight: 500; }
+  .stage-bars { display: flex; align-items: flex-end; justify-content: center; gap: 44px; margin: 16px 0 20px; background: #f6f5fc; border-radius: 16px; padding: 20px 16px 16px; height: 430px; box-shadow: inset 0 0 0 1px #e3e1f4; }
+  .bar-wrap { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; }
+  .bar { width: 54px; background: linear-gradient(180deg, #22d3ee, #6366f1); border-radius: 6px 6px 0 0; }
+  .bar-placeholder { width: 54px; height: 8px; border: 2px dashed #a5a3c9; border-radius: 6px; }
+  .bar-label { margin-top: 8px; font-weight: 700; color: var(--text); font-size: 15px; }
+  .caption { font-size: 12.5px; color: var(--muted); margin: -2px 0 2px; }
+  .btn-row { display: flex; justify-content: center; flex-wrap: wrap; margin-top: auto; }
+  svg { max-width: 100%; max-height: 380px; height: auto; display: block; margin: 0 auto; }
+  .fig-wrap { background: #f6f5fc; border-radius: 16px; padding: 14px; margin-bottom: 16px; min-height: 220px; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px #e3e1f4; }
+  .dots-row { display: flex; justify-content: center; gap: 22px; }
+  .dots-box { background: #f6f5fc; border-radius: 12px; padding: 8px; box-shadow: inset 0 0 0 1px #e3e1f4; }
+  .dots-label { margin-top: 6px; font-weight: 700; color: var(--text); font-size: 14px; }
+  .dash-row { text-align: left; margin-bottom: 12px; }
+  .dash-row .q { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
+  .dash-bar-bg { background: #e9e7f5; border-radius: 8px; height: 18px; overflow: hidden; display: flex; }
+  .dash-bar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: 700; white-space: nowrap; overflow: hidden; }
+  .small { font-size: 11px; color: var(--muted); }
+  .participants-table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 12.5px; }
+  .participants-table th { text-align: left; color: var(--muted); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 8px; border-bottom: 1px solid #e3e1f4; }
+  .participants-table td { padding: 6px 8px; border-bottom: 1px solid #f1f0fa; }
+  .participants-table tr:last-child td { border-bottom: none; }
+  #qrbox { margin-top: 12px; display: flex; justify-content: center; }
+  .badge { display: inline-block; background: linear-gradient(135deg, #ecfeff, #f3e8ff); color: #7c3aed; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px; margin-bottom: 10px; }
+  .note { font-size: 12px; color: var(--muted); background: #f6f5fc; border-radius: 10px; padding: 10px 12px; margin-top: 14px; text-align: left; }
+  .score-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 4px; border-bottom: 1px solid #f1f0fa; font-size: 14px; }
+  .score-row b { color: var(--accent2); }
+  .linklike { color: var(--accent2); font-size: 13px; text-decoration: underline; cursor: pointer; }
+  .dots-loader { display: flex; justify-content: center; align-items: center; gap: 9px; flex: 1; }
+  .dots-loader span { width: 13px; height: 13px; border-radius: 50%; animation: bounce 0.9s infinite ease-in-out; }
+  .dots-loader span:nth-child(1) { background: #06b6d4; }
+  .dots-loader span:nth-child(2) { background: #8b5cf6; animation-delay: 0.15s; }
+  .dots-loader span:nth-child(3) { background: #ec4899; animation-delay: 0.3s; }
+  @keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
+  .stroop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: auto; }
+  .stroop-swatch { width: 100%; height: 118px; border-radius: 16px; border: none; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.22), 0 8px 16px rgba(0,0,0,0.15); transition: transform 0.08s, box-shadow 0.08s; }
+  .stroop-swatch:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12); }
+  .cb-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: auto; }
+  .cb-num-btn { background: linear-gradient(135deg, #22d3ee, #6366f1); color: white; border: none; border-radius: 10px; padding: 10px 0; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 8px rgba(99,102,241,0.3); }
+  .cb-num-btn:active { transform: scale(0.93); }
+  .text-input { width: 100%; padding: 14px 16px; font-size: 16px; border-radius: 12px; border: 2px solid #e3e1f4; margin: 14px 0; font-family: 'Inter', sans-serif; }
+  .text-input:focus { outline: none; border-color: var(--accent2); }
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+(function () {
+  const isPainel = new URLSearchParams(window.location.search).get("painel") === "1";
+  const app = document.getElementById("app");
+
+  // ================= CONFIGURAÇÃO DO SUPABASE =================
+  // Cole aqui a URL e a chave "anon" (pública) do seu projeto Supabase.
+  // Painel do Supabase: Project Settings → API.
+  // NUNCA coloque a chave "service_role" aqui — só a "anon public".
+  const SUPABASE_URL = "https://ysjhfxqlmwvazajxducd.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_-DjeOLfIqtvETWlHv1SYSw_pOfcjL7x";
+  // Desligamos o gerenciamento de sessão de autenticação do Supabase: o jogo não usa
+  // login de usuário, só a chave pública direto nas tabelas. Sem isso, o cliente tenta
+  // acessar localStorage internamente — o que falha (e derruba o script inteiro) em
+  // ambientes que bloqueiam localStorage, como o preview de artefato do Claude.
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
+  });
+
+  const sessionId = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : (Math.random().toString(36).slice(2) + Date.now().toString(36));
+  let studentName = "";
+  let startedAt = 0;
+
+  function shuffle(arr) {
+    const a = arr.slice();
+    for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; }
+    return a;
+  }
+  function coin() { return Math.random() < 0.5; }
+  function interleaveNoAdjacent(items, keyFn) {
+    const groups = {};
+    items.forEach((it) => { const k = keyFn(it); (groups[k] = groups[k] || []).push(it); });
+    Object.keys(groups).forEach((k) => { groups[k] = shuffle(groups[k]); });
+    const result = []; let lastKey = null;
+    while (result.length < items.length) {
+      let keys = Object.keys(groups).filter((k) => groups[k].length > 0 && k !== lastKey);
+      if (keys.length === 0) keys = Object.keys(groups).filter((k) => groups[k].length > 0);
+      keys.sort((a, b) => groups[b].length - groups[a].length);
+      const maxLen = groups[keys[0]].length;
+      const top = keys.filter((k) => groups[k].length === maxLen);
+      const chosen = top[Math.floor(Math.random() * top.length)];
+      result.push(groups[chosen].shift());
+      lastKey = chosen;
+    }
+    return result;
+  }
+  function frameSvg(w, h, content) {
+    return `<svg viewBox="0 0 ${w} ${h}" width="100%"><rect x="1" y="1" width="${w - 2}" height="${h - 2}" fill="none" stroke="#ddd6f5" stroke-width="2" rx="10"/>${content}</svg>`;
+  }
+
+  function render(html) { app.innerHTML = html; }
+  function attach(id, fn) { document.getElementById(id).addEventListener("click", fn); }
+  const responses = { weber: [], numerosity: [], illusions: [] };
+  let globalOffset = 0;
+
+  const MINI_LOADING_MS = 500;
+  function miniLoading(onDone) {
+    render(`<div class="card"><div class="dots-loader"><span></span><span></span><span></span></div></div>`);
+    setTimeout(onDone, MINI_LOADING_MS);
+  }
+
+  // ================= DEFINIÇÕES: TAMANHO (Weber) — 12 rodadas =================
+  const RATIO_MODERADA = 1.15, RATIO_DIFICIL = 1.025;
+  const bases = [{ nome: "baixa", px: 50 }, { nome: "média", px: 110 }, { nome: "alta", px: 200 }, { nome: "muito_alta", px: 300 }];
+  let weberPairs = [];
+  bases.forEach((b) => {
+    weberPairs.push({ id: `w_${b.nome}_moderada`, group: b.nome, a: b.px, b: Math.round(b.px * RATIO_MODERADA), correctType: "diferente" });
+    weberPairs.push({ id: `w_${b.nome}_dificil`, group: b.nome, a: b.px, b: Math.round(b.px * RATIO_DIFICIL), correctType: "diferente" });
+    weberPairs.push({ id: `w_${b.nome}_igual`, group: b.nome, a: b.px, b: b.px, correctType: "igual" });
+  });
+  weberPairs = interleaveNoAdjacent(weberPairs, (x) => x.group);
+  const EXPOSICAO_BARRAS_MS = 400;
+
+  // ================= DEFINIÇÕES: QUANTIDADE — 12 rodadas =================
+  const NUM_MODERADA = 1.3, NUM_DIFICIL = 1.08;
+  const numBases = [8, 20, 35, 50];
+  let numerosityPairs = [];
+  numBases.forEach((n) => {
+    numerosityPairs.push({ id: `n_${n}_moderada`, group: `${n}`, a: n, b: Math.round(n * NUM_MODERADA) });
+    numerosityPairs.push({ id: `n_${n}_dificil`, group: `${n}`, a: n, b: Math.round(n * NUM_DIFICIL) });
+    numerosityPairs.push({ id: `n_${n}_igual`, group: `${n}`, a: n, b: n });
+  });
+  numerosityPairs = interleaveNoAdjacent(numerosityPairs, (x) => x.group);
+  const EXPOSICAO_PONTOS_MS = 600;
+
+  function dotPositions(n, w, h, r) {
+    const cols = Math.max(1, Math.ceil(Math.sqrt((n * w) / h)));
+    const rows = Math.ceil(n / cols);
+    const cellW = w / cols, cellH = h / rows;
+    const positions = []; let count = 0;
+    for (let ry = 0; ry < rows && count < n; ry++) {
+      for (let cx = 0; cx < cols && count < n; cx++) {
+        const jx = (Math.random() - 0.5) * Math.max(0, cellW - 2 * r) * 0.7;
+        const jy = (Math.random() - 0.5) * Math.max(0, cellH - 2 * r) * 0.7;
+        positions.push({ x: cx * cellW + cellW / 2 + jx, y: ry * cellH + cellH / 2 + jy }); count++;
+      }
+    }
+    return positions;
+  }
+  function dotsSVG(n, w, h) {
+    const r = 6;
+    const circles = dotPositions(n, w, h, r).map((p) => `<circle cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${r}" fill="#22d3ee"/>`).join("");
+    return `<svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}">${circles}</svg>`;
+  }
+
+  // ================= DEFINIÇÕES DAS ILUSÕES =================
+  function comparativeSet5(type, base, ratioSmall, ratioBig) {
+    return [
+      { type, key: `${type}_igual`, valA: base, valB: base },
+      { type, key: `${type}_A_pouco`, valA: Math.round(base * ratioSmall), valB: base },
+      { type, key: `${type}_A_muito`, valA: Math.round(base * ratioBig), valB: base },
+      { type, key: `${type}_B_pouco`, valA: base, valB: Math.round(base * ratioSmall) },
+      { type, key: `${type}_B_muito`, valA: base, valB: Math.round(base * ratioBig) },
+    ];
+  }
+  function ratioSet5(type, ratioSmall, ratioBig) {
+    ratioSmall = ratioSmall || 1.06; ratioBig = ratioBig || 1.3;
+    return [
+      { type, key: `${type}_igual`, ratioA: 1, ratioB: 1 },
+      { type, key: `${type}_A_pouco`, ratioA: ratioSmall, ratioB: 1 },
+      { type, key: `${type}_A_muito`, ratioA: ratioBig, ratioB: 1 },
+      { type, key: `${type}_B_pouco`, ratioA: 1, ratioB: ratioSmall },
+      { type, key: `${type}_B_muito`, ratioA: 1, ratioB: ratioBig },
+    ];
+  }
+  function comparativeSetAbs5(type, base, diffSmall, diffBig) {
+    return [
+      { type, key: `${type}_igual`, valA: base, valB: base },
+      { type, key: `${type}_A_pouco`, valA: base + diffSmall, valB: base },
+      { type, key: `${type}_A_muito`, valA: base + diffBig, valB: base },
+      { type, key: `${type}_B_pouco`, valA: base, valB: base + diffSmall },
+      { type, key: `${type}_B_muito`, valA: base, valB: base + diffBig },
+    ];
+  }
+  function illusionShell(idx, total, titulo, figSvg, options, correctValue, done) {
+    render(`<div class="card">${topProgress(globalOffset + idx + 1)}<div class="progress">Rodada ${idx + 1} de ${total}</div>
+      <h1>${titulo}</h1>
+      <div class="fig-wrap" id="illFig">${figSvg}</div>
+      <div class="btn-row">${options.map((o, k) => `<button class="btn ${o.secondary ? "secondary" : ""}" id="opt${k}">${o.label}</button>`).join("")}</div>
+    </div>`);
+    options.forEach((o, k) => attach(`opt${k}`, () => done({ isCorrect: o.value === correctValue })));
+  }
+  // Exposição breve (some depois de um tempo) para uma ilusão específica: força
+  // julgamento de memória, em vez de deixar a pessoa medir/comparar com calma.
+  function illusionShellTimed(idx, total, titulo, figSvg, placeholderSvg, exposureMs, options, correctValue, done) {
+    render(`<div class="card">${topProgress(globalOffset + idx + 1)}<div class="progress">Rodada ${idx + 1} de ${total}</div>
+      <h1>${titulo}</h1><p class="caption">A figura vai sumir — responda pelo que você lembrar.</p>
+      <div class="fig-wrap" id="illFig">${figSvg}</div>
+      <div class="btn-row">${options.map((o, k) => `<button class="btn ${o.secondary ? "secondary" : ""}" id="opt${k}" disabled>${o.label}</button>`).join("")}</div>
+    </div>`);
+    setTimeout(() => {
+      const fig = document.getElementById("illFig"); if (!fig) return;
+      fig.innerHTML = placeholderSvg;
+      options.forEach((o, k) => { const b = document.getElementById(`opt${k}`); if (b) b.disabled = false; });
+    }, exposureMs);
+    options.forEach((o, k) => attach(`opt${k}`, () => done({ isCorrect: o.value === correctValue })));
+  }
+
+  // Ilusão de Jastrow: duas formas em arco (tipo "fatia de rosca"), empilhadas uma
+  // sobre a outra. A de baixo sempre parece maior que a de cima mesmo quando são do
+  // mesmo tamanho, porque o cérebro compara a borda interna curta de uma com a borda
+  // externa longa da outra. Efeito perceptivo mais forte e mais difícil de "driblar"
+  // olhando com calma do que o Müller-Lyer — ótimo pra "bugar" a sensação de quem joga.
+  // Exibida por tempo limitado — ver illusionShellTimed.
+  const JASTROW_EXPOSURE_MS = 900;
+  function ringSectorPath(cx, cy, rInner, rOuter, startDeg, endDeg) {
+    const pt = (r, deg) => { const rad = (deg * Math.PI) / 180; return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]; };
+    const [x1, y1] = pt(rOuter, startDeg), [x2, y2] = pt(rOuter, endDeg);
+    const [x3, y3] = pt(rInner, endDeg), [x4, y4] = pt(rInner, startDeg);
+    const large = endDeg - startDeg > 180 ? 1 : 0;
+    return `M ${x1} ${y1} A ${rOuter} ${rOuter} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 ${large} 0 ${x4} ${y4} Z`;
+  }
+  function renderJastrow(idx, total, round, done) {
+    const base = 46 + Math.random() * 18; // 46 a 64
+    const valA = round.ratioA * base, valB = round.ratioB * base;
+    const swapPos = coin(); const topVal = swapPos ? valB : valA; const botVal = swapPos ? valA : valB;
+    const W = 290, H = 230, cx = W / 2;
+    const startDeg = 200, endDeg = 340, innerRatio = 0.55;
+    const cyTop = 60 + topVal * 0.3;
+    const cyBot = cyTop + topVal * 0.3 + 14 + botVal * 0.3 + botVal;
+    const pathTop = ringSectorPath(cx, cyTop, topVal * innerRatio, topVal, startDeg, endDeg);
+    const pathBot = ringSectorPath(cx, cyBot, botVal * innerRatio, botVal, startDeg, endDeg);
+    const content = `<path d="${pathTop}" fill="#6366f1"/><text x="${cx}" y="${cyTop - topVal - 10}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">A</text>
+      <path d="${pathBot}" fill="#22d3ee"/><text x="${cx}" y="${cyBot + botVal + 22}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">B</text>`;
+    const svg = frameSvg(W, H, content);
+    const placeholder = frameSvg(W, H, `<text x="${cx}" y="${H / 2}" text-anchor="middle" font-size="14" fill="#b4aee0">?</text>`);
+    const correct = topVal === botVal ? "igual" : (topVal > botVal ? "A" : "B");
+    illusionShellTimed(idx, total, "Qual forma parecia maior?", svg, placeholder, JASTROW_EXPOSURE_MS, [{ label: "Forma A", value: "A" }, { label: "Forma B", value: "B" }, { label: "Mesmo tamanho", value: "igual", secondary: true }], correct, done);
+  }
+
+  // Vários "cenários" de contexto sorteados por rodada (tamanho da base e número/tamanho
+  // dos círculos ao redor variam), pra não ficar sempre a mesma composição visual.
+  // Posições verdadeiramente aleatórias dentro do espaço (não mais só "lado a lado" ou
+  // "um em cima do outro") — os dois grupos são sorteados em qualquer ponto do quadro,
+  // com distância mínima garantida pra nunca se sobrepor nem estourar a moldura.
+  function pickTwoCenters(canvas, zone, minSep, maxAttempts) {
+    const rand = () => zone + Math.random() * (canvas - 2 * zone);
+    const p1 = { x: rand(), y: rand() };
+    for (let i = 0; i < maxAttempts; i++) {
+      const p2 = { x: rand(), y: rand() };
+      if (Math.hypot(p2.x - p1.x, p2.y - p1.y) >= minSep) return [p1, p2];
+    }
+    return [p1, { x: Math.min(canvas - zone, p1.x + minSep), y: p1.y }];
+  }
+  // Faixa do alvo reduzida (14-24, razão até 1,25) pra garantir que ele nunca alcance
+  // os círculos de contexto ao redor — antes o alvo podia ficar maior que a distância
+  // até os círculos pequenos, sobrepondo tudo. Distâncias recalculadas com folga real.
+  const EBB_SCENARIOS = [
+    { n: 6, rSmall: 10, dSmall: 45, rLarge: 24, dLarge: 60 },
+    { n: 7, rSmall: 9, dSmall: 44, rLarge: 23, dLarge: 59 },
+    { n: 8, rSmall: 8, dSmall: 43, rLarge: 22, dLarge: 58 },
+  ];
+  function renderEbbinghaus(idx, total, round, done) {
+    const base = 14 + Math.random() * 10; // 14 a 24
+    const valA = round.ratioA * base, valB = round.ratioB * base;
+    const swapPos = coin(); const val1 = swapPos ? valB : valA; const val2 = swapPos ? valA : valB;
+    const swapCtx = coin(); const firstSmallCtx = swapCtx;
+    const sc = EBB_SCENARIOS[Math.floor(Math.random() * EBB_SCENARIOS.length)];
+    const CANVAS = 520, ZONE = 98, MINSEP = 190;
+    const [p1, p2] = pickTwoCenters(CANVAS, ZONE, MINSEP, 100);
+    function ring(cx0, cy0, small, angleOffset) {
+      const Rbase = small ? sc.rSmall : sc.rLarge, Dbase = small ? sc.dSmall : sc.dLarge;
+      let out = "";
+      for (let i = 0; i < sc.n; i++) {
+        const jitter = 0.94 + Math.random() * 0.12; // +-6%, mais contido pra manter a folga
+        const R = Rbase * jitter, D = Dbase * jitter;
+        const ang = (i * 2 * Math.PI) / sc.n + angleOffset;
+        const x = cx0 + D * Math.cos(ang), y = cy0 + D * Math.sin(ang);
+        out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${R.toFixed(1)}" fill="none" stroke="#b4aee0" stroke-width="2"/>`;
+      }
+      return out;
+    }
+    // Ruído de fundo: pontinhos espalhados pela moldura toda, atrás de tudo, só pra
+    // confundir um pouco mais a leitura visual — não tem função na resposta certa.
+    function bgNoise(canvas, count) {
+      let out = "";
+      for (let i = 0; i < count; i++) {
+        const x = Math.random() * canvas, y = Math.random() * canvas, r = 2.5 + Math.random() * 4;
+        out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#c4bdf0" opacity="${(0.15 + Math.random() * 0.2).toFixed(2)}"/>`;
+      }
+      return out;
+    }
+    function label(p, text) {
+      return `<circle cx="${p.x}" cy="${p.y + 60}" r="13" fill="#1e1b2e"/><text x="${p.x}" y="${p.y + 65}" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">${text}</text>`;
+    }
+    const offset1 = Math.random() * 2 * Math.PI, offset2 = Math.random() * 2 * Math.PI;
+    const content = `${bgNoise(CANVAS, 34)}
+      <g>${ring(p1.x, p1.y, firstSmallCtx, offset1)}<circle cx="${p1.x}" cy="${p1.y}" r="${val1.toFixed(1)}" fill="#6366f1"/></g>${label(p1, "A")}
+      <g>${ring(p2.x, p2.y, !firstSmallCtx, offset2)}<circle cx="${p2.x}" cy="${p2.y}" r="${val2.toFixed(1)}" fill="#6366f1"/></g>${label(p2, "B")}`;
+    const svg = frameSvg(CANVAS, CANVAS, content);
+    const correct = val1 === val2 ? "igual" : (val1 > val2 ? "A" : "B");
+    illusionShell(idx, total, "Qual grupo (A ou B) tem o círculo do meio (roxo) maior?", svg, [{ label: "Grupo A", value: "A" }, { label: "Grupo B", value: "B" }, { label: "Mesmo tamanho", value: "igual", secondary: true }], correct, done);
+  }
+
+  function renderVH(idx, total, round, done) {
+    const cx = 140, cyMid = 130;
+    const lenV = round.valA, lenH = round.valB;
+    const topY = cyMid - lenV / 2, botY = cyMid + lenV / 2;
+    const content = `<line x1="${cx}" y1="${topY}" x2="${cx}" y2="${botY}" stroke="#6366f1" stroke-width="6"/>
+      <line x1="${cx - lenH / 2}" y1="${botY}" x2="${cx + lenH / 2}" y2="${botY}" stroke="#6366f1" stroke-width="6"/>
+      <text x="${cx + 14}" y="${topY + lenV / 2}" font-size="14" fill="#1e1b2e" font-weight="700">Vertical</text>
+      <text x="${cx - 34}" y="${botY + 22}" font-size="14" fill="#1e1b2e" font-weight="700">Horizontal</text>`;
+    const svg = frameSvg(280, 260, content);
+    const correct = lenV === lenH ? "igual" : (lenV > lenH ? "vertical" : "horizontal");
+    illusionShell(idx, total, "A linha vertical ou a horizontal parece mais comprida? Compare o comprimento das duas linhas (o formato em T é só a moldura da figura).", svg, [{ label: "Vertical", value: "vertical" }, { label: "Horizontal", value: "horizontal" }, { label: "Mesmo tamanho", value: "igual", secondary: true }], correct, done);
+  }
+
+  // Correção do bug real: as linhas agora tocam a borda da moldura (topo e base) — a
+  // ponta exata não fica mais exposta num vão vazio, que era exatamente o detalhe usado
+  // pra medir a inclinação sem precisar comparar as duas linhas. Os traços cruzados agora
+  // cobrem quase toda a extensão da linha, incluindo bem perto das pontas.
+  const ZOLLNER_ROUNDS = [
+    { key: "zollner_0", val: 0 }, { key: "zollner_muito_sutil", val: 2 }, { key: "zollner_sutil", val: 4 },
+    { key: "zollner_moderado", val: 7 }, { key: "zollner_claro", val: 10 },
+  ];
+  function renderZollner(idx, total, round, done) {
+    const half = round.val / 2;
+    const swap = coin();
+    const d1 = swap ? half : -half, d2 = swap ? -half : half;
+    const yTop = 4, yBot = 216; // encosta na moldura (frame de 220 de altura, 2px de margem)
+    function polar(x, y, len, angleDeg) { const a = (angleDeg * Math.PI) / 180; return { x: x + len * Math.cos(a), y: y + len * Math.sin(a) }; }
+    function ticks(x1, y1, x2, y2, n, tickLen, offsetDeg) {
+      const lineAngle = (Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI; let out = "";
+      for (let i = 0; i < n; i++) { const t = i / (n - 1); const px = x1 + (x2 - x1) * t, py = y1 + (y2 - y1) * t; const a = lineAngle + offsetDeg; const p1 = polar(px, py, tickLen / 2, a); const p2 = polar(px, py, tickLen / 2, a + 180); out += `<line x1="${p1.x.toFixed(1)}" y1="${p1.y.toFixed(1)}" x2="${p2.x.toFixed(1)}" y2="${p2.y.toFixed(1)}" stroke="#6366f1" stroke-width="2.5"/>`; }
+      return out;
+    }
+    const l1 = [80, yTop, 100 + d1, yBot];
+    const l2 = [190, yTop, 210 + d2, yBot];
+    const content = `<line x1="${l1[0]}" y1="${l1[1]}" x2="${l1[2]}" y2="${l1[3]}" stroke="#1e1b2e" stroke-width="4"/><line x1="${l2[0]}" y1="${l2[1]}" x2="${l2[2]}" y2="${l2[3]}" stroke="#1e1b2e" stroke-width="4"/>
+      ${ticks(l1[0], l1[1], l1[2], l1[3], 11, 26, 30)}${ticks(l2[0], l2[1], l2[2], l2[3], 11, 26, -30)}`;
+    const svg = frameSvg(300, 220, content);
+    const correct = round.val === 0 ? "paralelas" : "nao_paralelas";
+    illusionShell(idx, total, "As duas linhas pretas são paralelas entre si?", svg, [{ label: "Paralelas", value: "paralelas" }, { label: "Não paralelas", value: "nao_paralelas" }], correct, done);
+  }
+
+  function renderContrasteSimultaneo(idx, total, round, done) {
+    const swapPos = coin(); const leftVal = swapPos ? round.valB : round.valA; const rightVal = swapPos ? round.valA : round.valB;
+    const swapCtx = coin(); const leftDarkBg = swapCtx;
+    const g = (v) => `rgb(${v},${v},${v})`;
+    const content = `<rect x="10" y="10" width="140" height="140" fill="${leftDarkBg ? "#1e1e1e" : "#f2f2f2"}"/><rect x="50" y="50" width="60" height="60" fill="${g(leftVal)}"/>
+      <rect x="170" y="10" width="140" height="140" fill="${leftDarkBg ? "#f2f2f2" : "#1e1e1e"}"/><rect x="210" y="50" width="60" height="60" fill="${g(rightVal)}"/>
+      <text x="80" y="163" text-anchor="middle" font-size="13" fill="#1e1b2e" font-weight="700">Esquerdo</text>
+      <text x="240" y="163" text-anchor="middle" font-size="13" fill="#1e1b2e" font-weight="700">Direito</text>`;
+    const svg = frameSvg(320, 170, content);
+    const correct = leftVal === rightVal ? "igual" : (leftVal < rightVal ? "esquerdo" : "direito");
+    illusionShell(idx, total, "Qual quadrado cinza pequeno (no meio de cada fundo) parece mais escuro?", svg, [{ label: "Esquerdo", value: "esquerdo" }, { label: "Direito", value: "direito" }, { label: "Mesmo tom", value: "igual", secondary: true }], correct, done);
+  }
+
+  function renderContrasteCor(idx, total, round, done) {
+    const swapPos = coin(); const leftVal = swapPos ? round.valB : round.valA; const rightVal = swapPos ? round.valA : round.valB;
+    const swapCtx = coin(); const leftBlueBg = swapCtx;
+    const warm = (w) => `rgb(${Math.round(150 + w)},150,${Math.round(150 - w)})`;
+    const content = `<rect x="10" y="10" width="140" height="140" fill="${leftBlueBg ? "#1e3a8a" : "#fbbf24"}"/><rect x="50" y="50" width="60" height="60" fill="${warm(leftVal)}"/>
+      <rect x="170" y="10" width="140" height="140" fill="${leftBlueBg ? "#fbbf24" : "#1e3a8a"}"/><rect x="210" y="50" width="60" height="60" fill="${warm(rightVal)}"/>
+      <text x="80" y="163" text-anchor="middle" font-size="13" fill="#1e1b2e" font-weight="700">Esquerdo</text>
+      <text x="240" y="163" text-anchor="middle" font-size="13" fill="#1e1b2e" font-weight="700">Direito</text>`;
+    const svg = frameSvg(320, 170, content);
+    const correct = leftVal === rightVal ? "igual" : (leftVal > rightVal ? "esquerdo" : "direito");
+    illusionShell(idx, total, "Qual quadrado colorido pequeno (no meio de cada fundo) parece mais quente/alaranjado?", svg, [{ label: "Esquerdo", value: "esquerdo" }, { label: "Direito", value: "direito" }, { label: "Mesma cor", value: "igual", secondary: true }], correct, done);
+  }
+
+  // ---- Observação de cena: 20 elementos (era 15), mudanças mais sutis: cor desloca
+  // pra um tom próximo (não troca de cor totalmente), tamanho cresce menos, o "sumiço"
+  // vira esmaecimento parcial (não invisibilidade total), e o deslocamento é menor. ----
+  const CB_N = 20;
+  const CB_PALETTE = ["#ef4444", "#06b6d4", "#22c55e", "#f59e0b", "#a855f7", "#ec4899", "#14b8a6", "#6366f1"];
+  const CB_TYPE_POOL = ["circle", "rect", "triangle"];
+  function cbScatter(n, w, h) {
+    const cols = Math.max(2, Math.ceil(Math.sqrt((n * w) / h)));
+    const rows = Math.ceil(n / cols);
+    const cellW = w / cols, cellH = h / rows;
+    let cells = [];
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) cells.push({ r, c });
+    cells = shuffle(cells).slice(0, n);
+    return cells.map((cell) => ({
+      x: Math.round(cell.c * cellW + cellW / 2 + (Math.random() - 0.5) * cellW * 0.3),
+      y: Math.round(cell.r * cellH + cellH / 2 + (Math.random() - 0.5) * cellH * 0.3),
+    }));
+  }
+  function cbFreshShapes() {
+    const pos = cbScatter(CB_N, 260, 190);
+    return pos.map((p) => ({
+      type: CB_TYPE_POOL[Math.floor(Math.random() * CB_TYPE_POOL.length)],
+      x: p.x, y: p.y, size: 9,
+      color: CB_PALETTE[Math.floor(Math.random() * CB_PALETTE.length)],
+      opacity: 1,
+    }));
+  }
+  function cbShape(s) {
+    if (s.type === "circle") return `<circle cx="${s.x}" cy="${s.y}" r="${s.size}" fill="${s.color}" opacity="${s.opacity}"/>`;
+    if (s.type === "rect") return `<rect x="${s.x - s.size}" y="${s.y - s.size}" width="${s.size * 2}" height="${s.size * 2}" fill="${s.color}" opacity="${s.opacity}"/>`;
+    return `<polygon points="${s.x},${s.y - s.size} ${s.x - s.size},${s.y + s.size} ${s.x + s.size},${s.y + s.size}" fill="${s.color}" opacity="${s.opacity}"/>`;
+  }
+  function cbSceneSVG(shapes) { return frameSvg(260, 190, shapes.map(cbShape).join("")); }
+  function cbSceneSVGNumbered(shapes) {
+    const body = shapes.map(cbShape).join("");
+    const labels = shapes.map((s, i) => `<circle cx="${s.x}" cy="${Math.max(12, s.y - s.size - 9)}" r="7.5" fill="#1e1b2e"/><text x="${s.x}" y="${Math.max(15, s.y - s.size - 6)}" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">${i + 1}</text>`).join("");
+    return frameSvg(260, 190, body + labels);
+  }
+  function subtleColorShift(hex) {
+    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
+    const amt = 12 + Math.random() * 14; // 12 a 26 — desloca o tom, não troca de cor
+    const adj = (v) => Math.min(230, Math.max(25, v + (coin() ? amt : -amt)));
+    return `rgb(${Math.round(adj(r))},${Math.round(adj(g))},${Math.round(adj(b))})`;
+  }
+  function cbApplyMutation(shapesA, kind) {
+    if (kind === "none") return { shapesB: shapesA.map((s) => ({ ...s })), changedIndex: -1 };
+    const i = Math.floor(Math.random() * shapesA.length);
+    const shapesB = shapesA.map((s) => ({ ...s }));
+    if (kind === "color") { shapesB[i].color = subtleColorShift(shapesA[i].color); }
+    else if (kind === "size") { shapesB[i].size = shapesA[i].size + (2 + Math.random() * 2.5); }
+    else if (kind === "disappear") { shapesB[i].opacity = 0.35 + Math.random() * 0.2; }
+    else if (kind === "shapetype") { const others = CB_TYPE_POOL.filter((t) => t !== shapesA[i].type); shapesB[i].type = others[Math.floor(Math.random() * others.length)]; }
+    else if (kind === "move") {
+      const dx = (coin() ? 1 : -1) * (6 + Math.random() * 8), dy = (coin() ? 1 : -1) * (6 + Math.random() * 6);
+      shapesB[i].x = Math.min(245, Math.max(15, shapesA[i].x + dx));
+      shapesB[i].y = Math.min(175, Math.max(15, shapesA[i].y + dy));
+    }
+    return { shapesB, changedIndex: i };
+  }
+  const CB_KINDS = ["color", "size", "disappear", "move", "shapetype", "none", "none"];
+  const CB_FRAME_MS = 220, CB_BLANK_MS = 80, CB_CYCLES = 4;
+  function renderCegueiraMudanca(idx, total, kind, done) {
+    const shapesA = cbFreshShapes();
+    const { shapesB, changedIndex } = cbApplyMutation(shapesA, kind);
+    render(`<div class="card">${topProgress(globalOffset + idx + 1)}<div class="progress">Rodada ${idx + 1} de ${total}</div>
+      <h1>Observe a cena com atenção</h1>
+      <div class="fig-wrap" id="cbstage">${cbSceneSVG(shapesA)}</div></div>`);
+    function cycle(n) {
+      const stage = document.getElementById("cbstage"); if (!stage) return;
+      stage.innerHTML = cbSceneSVG(shapesA);
+      setTimeout(() => {
+        const s1 = document.getElementById("cbstage"); if (!s1) return; s1.innerHTML = "";
+        setTimeout(() => {
+          const s2 = document.getElementById("cbstage"); if (!s2) return; s2.innerHTML = cbSceneSVG(shapesB);
+          setTimeout(() => {
+            const s3 = document.getElementById("cbstage"); if (!s3) return; s3.innerHTML = "";
+            setTimeout(() => { if (n <= 1) askCB(); else cycle(n - 1); }, CB_BLANK_MS);
+          }, CB_FRAME_MS);
+        }, CB_BLANK_MS);
+      }, CB_FRAME_MS);
+    }
+    function askCB() {
+      const opts = shapesA.map((_, i) => `<button class="cb-num-btn" id="f${i}">${i + 1}</button>`).join("");
+      render(`<div class="card">${topProgress(globalOffset + idx + 1)}<div class="progress">Rodada ${idx + 1} de ${total}</div>
+        <h1>O que mudou? Escolha o número da forma</h1>
+        <p class="caption">Esta imagem mostra a cena como ela estava no início, com os números.</p>
+        <div class="fig-wrap">${cbSceneSVGNumbered(shapesA)}</div>
+        <div class="cb-grid">${opts}</div>
+        <button class="btn secondary" id="fnada" style="width:100%; margin-top:10px;">Nada mudou</button></div>`);
+      shapesA.forEach((_, i) => attach(`f${i}`, () => done({ isCorrect: i === changedIndex })));
+      attach("fnada", () => done({ isCorrect: changedIndex === -1 }));
+    }
+    cycle(CB_CYCLES);
+  }
+
+  // ---- Nomeação de cores: grade 2x2 de botões retangulares grandes (estilo Kahoot),
+  // sem texto — só a cor —, 1s por rodada. ----
+  const STROOP_COLORS = [{ name: "Vermelho", hex: "#dc2626" }, { name: "Azul", hex: "#2563eb" }, { name: "Verde", hex: "#16a34a" }, { name: "Amarelo", hex: "#ca8a04" }];
+  const STROOP_TIMER_MS = 1000;
+  const STROOP_REVEAL_DELAY_MS = 200;
+  function renderStroopTrial(completedSoFar, target, done) {
+    const word = STROOP_COLORS[Math.floor(Math.random() * 4)];
+    const ink = STROOP_COLORS[Math.floor(Math.random() * 4)];
+    const congruent = word.name === ink.name;
+    let answered = false;
+    render(`<div class="card">${topProgress(globalOffset + completedSoFar + 1)}<div class="progress">Rodada ${completedSoFar + 1} de ${target}</div>
+      <h1>Clique no quadrado da COR da TINTA — não leia a palavra</h1>
+      <div class="topbar"><div class="topbar-fill" id="sTimer"></div></div>
+      <div class="fig-wrap"><div style="font-size:42px; font-weight:800; letter-spacing:0.03em; color:${ink.hex}; text-shadow: 0 2px 4px rgba(0,0,0,0.08);">${word.name.toUpperCase()}</div></div>
+      <div class="stroop-grid" id="stroopGrid" style="visibility:hidden">${STROOP_COLORS.map((c, k) => `<button class="stroop-swatch" id="c${k}" style="background:${c.hex}" aria-label="${c.name}"></button>`).join("")}</div>
+    </div>`);
+    let t0;
+    setTimeout(() => {
+      const grid = document.getElementById("stroopGrid"); if (!grid) return;
+      grid.style.visibility = "visible";
+      t0 = Date.now();
+      const bar = document.getElementById("sTimer");
+      if (bar) requestAnimationFrame(() => { bar.style.transition = `width ${STROOP_TIMER_MS}ms linear`; bar.style.width = "0%"; });
+      const timeoutId = setTimeout(() => { if (!answered) { answered = true; done({ timedOut: true }); } }, STROOP_TIMER_MS);
+      STROOP_COLORS.forEach((c, k) => attach(`c${k}`, () => {
+        if (answered) return; answered = true; clearTimeout(timeoutId);
+        done({ isCorrect: c.hex === ink.hex, reactionMs: Date.now() - t0, congruent, timedOut: false });
+      }));
+    }, STROOP_REVEAL_DELAY_MS);
+  }
+  function runStroopBlock(onBlockDone) {
+    const target = 7, maxAttempts = 20;
+    let completed = 0, attempts = 0;
+    function attempt() {
+      if (completed >= target || attempts >= maxAttempts) { onBlockDone(); return; }
+      attempts++;
+      renderStroopTrial(completed, target, (result) => {
+        if (result.timedOut) { miniLoading(attempt); return; }
+        responses.illusions.push({ id: `stroop_${completed}`, isCorrect: result.isCorrect, reactionMs: result.reactionMs, congruent: result.congruent });
+        completed++; miniLoading(attempt);
+      });
+    }
+    attempt();
+  }
+
+  // ================= MOTOR GENÉRICO DE BLOCO =================
+  function runSimpleBlock(variants, renderFn, onBlockDone) {
+    const seq = shuffle(variants);
+    let i = 0;
+    function next() {
+      if (i >= seq.length) { onBlockDone(); return; }
+      const v = seq[i];
+      renderFn(i, seq.length, v, (result) => {
+        responses.illusions.push({ id: v.key, isCorrect: result.isCorrect });
+        i++; miniLoading(next);
+      });
+    }
+    next();
+  }
+  function runCegueiraBlock(onBlockDone) {
+    const seq = shuffle(CB_KINDS.map((k, idx) => ({ kind: k, key: `cegueira_${idx}` })));
+    let i = 0;
+    function next() {
+      if (i >= seq.length) { onBlockDone(); return; }
+      renderCegueiraMudanca(i, seq.length, seq[i].kind, (result) => {
+        responses.illusions.push({ id: seq[i].key, isCorrect: result.isCorrect });
+        i++; miniLoading(next);
+      });
+    }
+    next();
+  }
+
+  function playerWeberBlock(onBlockDone) {
+    function round(i) {
+      if (i >= weberPairs.length) { onBlockDone(); return; }
+      const pair = weberPairs[i];
+      const swap = coin(); const ha = swap ? pair.b : pair.a; const hb = swap ? pair.a : pair.b;
+      render(`<div class="card">${topProgress(globalOffset + i + 1)}<div class="progress">Rodada ${i + 1} de ${weberPairs.length}</div>
+        <h1>Observe as barras</h1><div class="caption">Memorize as alturas — elas vão sumir.</div>
+        <div class="stage-bars" id="bars">
+          <div class="bar-wrap"><div class="bar" style="height:${ha}px"></div><div class="bar-label">A</div></div>
+          <div class="bar-wrap"><div class="bar" style="height:${hb}px"></div><div class="bar-label">B</div></div>
+        </div>
+        <div class="btn-row"><button class="btn" id="sim" disabled>Havia diferença</button><button class="btn secondary" id="nao" disabled>Pareciam iguais</button></div>
+      </div>`);
+      setTimeout(() => {
+        const barsEl = document.getElementById("bars"); if (!barsEl) return;
+        barsEl.innerHTML = `<div class="bar-wrap"><div class="bar-placeholder"></div><div class="bar-label">A</div></div><div class="bar-wrap"><div class="bar-placeholder"></div><div class="bar-label">B</div></div>`;
+        const s = document.getElementById("sim"), n = document.getElementById("nao");
+        if (s) s.disabled = false; if (n) n.disabled = false;
+      }, EXPOSICAO_BARRAS_MS);
+      const record = (perceivedDifferent) => {
+        const isCorrect = (perceivedDifferent && pair.correctType === "diferente") || (!perceivedDifferent && pair.correctType === "igual");
+        responses.weber.push({ id: pair.id, isCorrect });
+        miniLoading(() => round(i + 1));
+      };
+      attach("sim", () => record(true)); attach("nao", () => record(false));
+    }
+    round(0);
+  }
+
+  function playerNumerosityBlock(onBlockDone) {
+    function round(i) {
+      if (i >= numerosityPairs.length) { onBlockDone(); return; }
+      const pair = numerosityPairs[i];
+      const swap = coin(); const na = swap ? pair.b : pair.a; const nb = swap ? pair.a : pair.b;
+      const correctSide = na === nb ? "igual" : (na > nb ? "A" : "B");
+      render(`<div class="card">${topProgress(globalOffset + i + 1)}<div class="progress">Rodada ${i + 1} de ${numerosityPairs.length}</div>
+        <h1>Observe os pontos</h1><div class="caption">Eles vão sumir — não dá tempo de contar.</div>
+        <div class="dots-row" id="dotsrow"><div class="dots-box">${dotsSVG(na, 130, 130)}<div class="dots-label">A</div></div><div class="dots-box">${dotsSVG(nb, 130, 130)}<div class="dots-label">B</div></div></div>
+        <div class="btn-row"><button class="btn" id="a" disabled>Grupo A</button><button class="btn" id="b" disabled>Grupo B</button><button class="btn secondary" id="igual" disabled>Pareciam iguais</button></div>
+      </div>`);
+      setTimeout(() => {
+        const row = document.getElementById("dotsrow"); if (!row) return;
+        row.style.opacity = "0";
+        setTimeout(() => { if (row) { row.innerHTML = ""; row.style.opacity = "1"; } }, 200);
+        ["a", "b", "igual"].forEach((id) => { const el = document.getElementById(id); if (el) el.disabled = false; });
+      }, EXPOSICAO_PONTOS_MS);
+      const record = (chosen) => {
+        const isCorrect = chosen === correctSide;
+        responses.numerosity.push({ id: pair.id, isCorrect });
+        miniLoading(() => round(i + 1));
+      };
+      attach("a", () => record("A")); attach("b", () => record("B")); attach("igual", () => record("igual"));
+    }
+    round(0);
+  }
+
+  // ================= SEQUÊNCIA DE BLOCOS =================
+  const EBB_ROUNDS = ratioSet5("ebb");
+  const JASTROW_ROUNDS = ratioSet5("jastrow", 1.02, 1.18); // diferença "pouco" ainda mais sutil — efeito Jastrow é forte, não precisa de muita diferença real pra confundir
+  const VH_ROUNDS = comparativeSet5("vh", 150, 1.08, 1.3);
+  const CONTRASTE_ROUNDS = comparativeSetAbs5("contraste", 130, 10, 25);
+  const COR_ROUNDS = comparativeSetAbs5("cor", 0, 12, 28);
+  const CB_REFS = CB_KINDS.map((k, i) => ({ key: `cegueira_${i}` }));
+  const STROOP_REFS = [0, 1, 2, 3, 4, 5, 6].map((i) => ({ key: `stroop_${i}` }));
+
+  const BLOCKS_ORDERED = [
+    { title: "Tamanho", count: weberPairs.length, introSeconds: 2, objetivo: "Você vai ver duas barras verticais por menos de meio segundo, e depois elas somem da tela. Sua tarefa: dizer se as duas barras tinham a mesma altura, ou se uma era mais alta que a outra.", run: playerWeberBlock },
+    { title: "Quantidade", count: numerosityPairs.length, introSeconds: 2, objetivo: "Você vai ver dois grupos de pontos por menos de um segundo, e depois eles somem. Sua tarefa: dizer qual grupo parecia ter mais pontos, ou se os dois grupos pareciam ter a mesma quantidade.", run: playerNumerosityBlock },
+    { title: "Tamanho das formas", count: JASTROW_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas formas em arco, uma em cima da outra, por menos de um segundo antes de sumirem. Sua tarefa: dizer qual das duas formas parecia maior, ou se as duas pareciam do mesmo tamanho.", run: (onDone) => runSimpleBlock(JASTROW_ROUNDS, renderJastrow, onDone) },
+    { title: "Tamanho de círculos", count: EBB_ROUNDS.length, introSeconds: 2, objetivo: "Dois grupos (rotulados A e B) vão aparecer em posições soltas na tela — cada um é um círculo azul cercado por outros círculos ao redor (o número, tamanho e posição desses círculos ao redor varia a cada rodada). Sua tarefa: dizer qual dos dois círculos azuis (do meio de cada grupo) parece maior, ou se os dois parecem do mesmo tamanho.", run: (onDone) => runSimpleBlock(EBB_ROUNDS, renderEbbinghaus, onDone) },
+    { title: "Vertical x horizontal", count: VH_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas linhas formando um T: uma na vertical e uma na horizontal. Sua tarefa: dizer qual das duas linhas parece mais comprida, ou se as duas parecem do mesmo tamanho.", run: (onDone) => runSimpleBlock(VH_ROUNDS, renderVH, onDone) },
+    { title: "Linhas paralelas", count: ZOLLNER_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas linhas pretas na vertical, cada uma cruzada por pequenos traços diagonais. Sua tarefa: dizer se essas duas linhas pretas são paralelas entre si (ou seja, se apontam exatamente na mesma direção) ou não.", run: (onDone) => runSimpleBlock(ZOLLNER_ROUNDS, renderZollner, onDone) },
+    { title: "Tons de cinza", count: CONTRASTE_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados cinzas pequenos, cada um no centro de um fundo diferente (um escuro, um claro). Sua tarefa: dizer qual dos dois quadrados cinzas parece mais escuro, ou se os dois parecem exatamente do mesmo tom.", run: (onDone) => runSimpleBlock(CONTRASTE_ROUNDS, renderContrasteSimultaneo, onDone) },
+    { title: "Tons de cor", count: COR_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados coloridos pequenos, cada um no centro de um fundo diferente (um azul, um amarelo). Sua tarefa: dizer qual dos dois quadrados parece ter uma cor mais quente (mais alaranjada), ou se as duas cores parecem iguais.", run: (onDone) => runSimpleBlock(COR_ROUNDS, renderContrasteCor, onDone) },
+    { title: "Observação de cena", count: CB_KINDS.length, introSeconds: 2, objetivo: "Uma cena cheia de formas coloridas vai aparecer e piscar algumas vezes, rapidamente. Preste bastante atenção em cada forma individualmente. Quando ela parar de piscar, você vai apontar qual das formas mudou (de cor, tamanho ou posição, ou ficou mais fraca/apagada) — ou dizer que nada mudou.", run: runCegueiraBlock },
+    {
+      title: "Nomeação de cores", count: STROOP_REFS.length, introSeconds: 4,
+      objetivo: "Uma palavra aparece na tela, escrita com tinta de uma cor — ignore o que ela diz. Clique no quadrado com a mesma cor da TINTA. Exemplo: palavra \"AZUL\" escrita em vermelho → clique no quadrado vermelho. Os quadrados aparecem 0,2s depois da palavra, e você tem 1 segundo pra responder.",
+      run: runStroopBlock,
+    },
+  ];
+  const BLOCKS = shuffle(BLOCKS_ORDERED); // ordem dos blocos sempre aleatória a cada partida
+  const TOTAL_STEPS = BLOCKS.reduce((s, b) => s + b.count, 0);
+  function topProgress(current) { const pct = Math.round((current / TOTAL_STEPS) * 100); return `<div class="topbar"><div class="topbar-fill" style="width:${pct}%"></div></div>`; }
+
+  // O botão só aparece depois que o tempo termina — nada de avanço automático nem de
+  // clique antecipado antes disso.
+  function blockIntro(title, objetivo, blockNum, totalBlocks, introSeconds, onDone) {
+    render(`<div class="card">
+      <div class="badge">Etapa ${blockNum} de ${totalBlocks}</div>
+      <h1>${title}</h1>
+      <p class="lead">${objetivo}</p>
+      <div class="topbar"><div class="topbar-fill" id="introTimer"></div></div>
+      <p class="small" id="introCountdown" style="text-align:center; margin-top:6px;">Aguarde ${introSeconds}s…</p>
+      <div class="btn-row" id="introBtnRow"></div>
+    </div>`);
+    const bar = document.getElementById("introTimer");
+    if (bar) requestAnimationFrame(() => { bar.style.transition = `width ${introSeconds}s linear`; bar.style.width = "0%"; });
+    let t = introSeconds;
+    const timer = setInterval(() => {
+      t -= 1;
+      const el = document.getElementById("introCountdown");
+      if (t > 0) { if (el) el.textContent = `Aguarde ${t}s…`; }
+      else {
+        clearInterval(timer);
+        if (el) el.textContent = "Pronto!";
+        const row = document.getElementById("introBtnRow");
+        if (row) { row.innerHTML = `<button class="btn" id="startNow">Começar</button>`; attach("startNow", onDone); }
+      }
+    }, 1000);
+  }
+
+  function runBlockAt(i) {
+    if (i >= BLOCKS.length) { playerFinish(); return; }
+    const b = BLOCKS[i];
+    blockIntro(b.title, b.objetivo, i + 1, BLOCKS.length, b.introSeconds || 2, () => {
+      b.run(() => { globalOffset += b.count; if (i + 1 < BLOCKS.length) saveProgress(false); runBlockAt(i + 1); });
+    });
+  }
+
+  // Salva (ou atualiza) a linha desta partida no Supabase. Chamado ao iniciar, ao fim de
+  // cada bloco e ao terminar (finished = true), pra o painel mostrar quem está jogando
+  // em tempo real. A rodada é fixada no início da partida: se o professor clicar em
+  // "Nova rodada" no meio, este aluno continua gravando na rodada em que começou.
+  let gameRoundId = null;
+  async function saveProgress(finished) {
+    try {
+      if (!gameRoundId) gameRoundId = await ensureRoundId();
+      const { error } = await sb.from("responses").upsert({
+        session_id: sessionId,
+        round_id: gameRoundId,
+        student_name: studentName,
+        weber: responses.weber,
+        numerosity: responses.numerosity,
+        illusions: responses.illusions,
+        duration_ms: startedAt ? Date.now() - startedAt : 0,
+        finished: !!finished,
+      }, { onConflict: "session_id,round_id" });
+      if (error) throw error;
+      return true;
+    } catch (e) { console.warn("saveProgress falhou:", e); return false; }
+  }
+  // Nomes digitados pelos alunos vão parar em innerHTML (painel e resultado): escapar.
+  function esc(t) { return String(t == null ? "" : t).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c])); }
+
+  function askStudentName() {
+    render(`<div class="card"><div class="badge">🧠 Lab. Sensação e Percepção</div><h1>Antes de começar</h1>
+      <p class="lead">Digite seu nome — é assim que o professor vai identificar sua pontuação no painel da turma.</p>
+      <input class="text-input" id="nameInput" type="text" placeholder="Seu nome" autocomplete="off">
+      <p class="small" id="nameError" style="color:#dc2626; display:none; margin-top:-8px; margin-bottom:10px;">Digite seu nome pra continuar.</p>
+      <div class="btn-row"><button class="btn" id="nameGo">Começar</button></div></div>`);
+    const submit = () => {
+      const input = document.getElementById("nameInput");
+      const val = input.value.trim();
+      if (!val) { document.getElementById("nameError").style.display = "block"; return; }
+      studentName = val;
+      playerWelcome();
+    };
+    attach("nameGo", submit);
+    const input = document.getElementById("nameInput");
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") submit(); });
+    input.focus();
+  }
+
+  function playerWelcome() {
+    render(`<div class="card"><div class="badge">🧠 Lab. Sensação e Percepção</div><h1 style="font-size:26px; background:linear-gradient(135deg,#06b6d4,#8b5cf6,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent;">Você confia no que vê?</h1>
+      <p class="lead">Oi, <b>${esc(studentName)}</b>! Você vai passar por ${BLOCKS.length} etapas curtas. Antes de cada uma, o objetivo será explicado com clareza.</p>
+      <div class="btn-row"><button class="btn" id="go">Começar o jogo</button></div></div>`);
+    attach("go", async () => { startedAt = Date.now(); await saveProgress(false); runBlockAt(0); });
+  }
+
+  // ---------------- RESULTADO PESSOAL ----------------
+  function scoreOf(list) { return { correct: list.filter((x) => x.isCorrect).length, total: list.length }; }
+  function fmtDuration(ms) {
+    const totalSec = Math.max(0, Math.round(ms / 1000));
+    const m = Math.floor(totalSec / 60), s = totalSec % 60;
+    return m > 0 ? `${m}min ${s}s` : `${s}s`;
+  }
+  // Cada bloco é identificado pelo prefixo das chaves que ele grava em
+  // responses.illusions (ex.: "jastrow_", "stroop_"), pra poder separar o placar
+  // pessoal por jogo sem precisar mudar todos os pontos que registram resposta.
+  const BLOCK_PREFIXES = [
+    { title: "Tamanho", prefix: null, list: () => responses.weber },
+    { title: "Quantidade", prefix: null, list: () => responses.numerosity },
+    { title: "Tamanho das formas", prefix: "jastrow_" },
+    { title: "Tamanho de círculos", prefix: "ebb_" },
+    { title: "Vertical x horizontal", prefix: "vh_" },
+    { title: "Linhas paralelas", prefix: "zollner_" },
+    { title: "Tons de cinza", prefix: "contraste_" },
+    { title: "Tons de cor", prefix: "cor_" },
+    { title: "Observação de cena", prefix: "cegueira_" },
+    { title: "Nomeação de cores", prefix: "stroop_" },
+  ];
+  function perGameScores() {
+    return BLOCK_PREFIXES.map((b) => {
+      const list = b.list ? b.list() : responses.illusions.filter((x) => x.id.startsWith(b.prefix));
+      return { title: b.title, ...scoreOf(list) };
+    });
+  }
+
+  async function playerFinish() {
+    render(`<div class="card"><h1>Calculando seu resultado...</h1><p class="lead">Só um instante.</p></div>`);
+    const durationMs = startedAt ? Date.now() - startedAt : 0;
+    const perGame = perGameScores();
+    const totalCorrect = perGame.reduce((s, g) => s + g.correct, 0);
+    const totalQuestions = perGame.reduce((s, g) => s + g.total, 0);
+    await saveProgress(true);
+    const painelHref = (() => { const u = new URL(window.location.href); u.searchParams.set("painel", "1"); return u.toString(); })();
+    render(`<div class="card"><h1 style="font-size:26px; background:linear-gradient(135deg,#06b6d4,#8b5cf6,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent;">🎉 Seu resultado, ${esc(studentName)}</h1>
+      <p class="lead" style="margin-bottom:4px">Você acertou <b>${totalCorrect} de ${totalQuestions}</b> rodadas.</p>
+      <p class="lead" style="margin-bottom:8px; font-size:13px;">Tempo total: <b>${fmtDuration(durationMs)}</b></p>
+      ${perGame.map((g) => `<div class="score-row"><span>${g.title}</span><b>${g.correct}/${g.total}</b></div>`).join("")}
+      <p class="lead" style="margin-top:16px; font-size:13px;">Suas respostas foram enviadas para o placar da turma.</p>
+      <a class="linklike" href="${painelHref}" target="_blank" rel="noopener">Ver o painel ao vivo da turma →</a>
+    </div>`);
+  }
+
+  // ---------------- PAINEL (APRESENTADOR) ----------------
+  let pollTimer = null;
+  async function ensureRoundId() {
+    try {
+      const { data, error } = await sb.from("game_state").select("current_round_id").eq("id", 1).maybeSingle();
+      if (error) throw error;
+      if (data && data.current_round_id) return data.current_round_id;
+      return await newRound();
+    } catch (e) { return await newRound(); }
+  }
+  async function newRound() {
+    const id = "r" + Date.now();
+    await sb.from("game_state").upsert({ id: 1, current_round_id: id, updated_at: new Date().toISOString() });
+    return id;
+  }
+
+  function segBar(label, counts, colorMap) {
+    const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
+    const segs = Object.entries(counts).map(([k, v]) => { const pct = Math.round((v / total) * 100); return `<div class="dash-bar-seg" style="width:${pct}%; background:${colorMap[k] || '#94a3b8'}">${pct > 10 ? pct + '%' : ''}</div>`; }).join("");
+    const legend = Object.entries(counts).map(([k, v]) => `${k}: ${v}`).join(" · ");
+    return `<div class="dash-row"><div class="q">${label}</div><div class="dash-bar-bg">${segs}</div><div class="small">${legend} · total: ${total}</div></div>`;
+  }
+  function aggregateById(canonicalList, allResp, extractor, getId) {
+    const counts = {};
+    canonicalList.forEach((item) => { counts[getId(item)] = { acertou: 0, errou: 0 }; });
+    allResp.forEach((r) => extractor(r).forEach((entry) => { if (counts[entry.id]) counts[entry.id][entry.isCorrect ? "acertou" : "errou"]++; }));
+    return counts;
+  }
+
+  async function renderPainel() {
+    const roundId = await ensureRoundId();
+    let allResp = [];
+    try {
+      const { data, error } = await sb.from("responses").select("*").eq("round_id", roundId).order("created_at", { ascending: true });
+      if (error) throw error;
+      allResp = data || [];
+    } catch (e) { /* sem respostas ainda */ }
+
+    const totals = allResp.filter((r) => r.finished).map((r) => (r.weber || []).filter((x) => x.isCorrect).length + (r.numerosity || []).filter((x) => x.isCorrect).length + (r.illusions || []).filter((x) => x.isCorrect).length);
+    const avg = totals.length ? (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1) : "-";
+
+    const perStudent = allResp.map((r) => {
+      const correct = (r.weber || []).filter((x) => x.isCorrect).length + (r.numerosity || []).filter((x) => x.isCorrect).length + (r.illusions || []).filter((x) => x.isCorrect).length;
+      const total = (r.weber || []).length + (r.numerosity || []).length + (r.illusions || []).length;
+      return { name: r.student_name || "(sem nome)", correct, total, durationMs: r.duration_ms || 0, createdAt: r.created_at || "", finished: !!r.finished };
+    }).sort((a, b) => (Number(a.finished) - Number(b.finished)) || (b.createdAt || "").localeCompare(a.createdAt || ""));
+    const playingNow = perStudent.filter((p) => !p.finished).length;
+
+    const wCounts = aggregateById(weberPairs, allResp, (r) => r.weber || [], (p) => p.id);
+    const nCounts = aggregateById(numerosityPairs, allResp, (r) => r.numerosity || [], (p) => p.id);
+    const ALL_ILLUSION_DEFS = [...JASTROW_ROUNDS, ...EBB_ROUNDS, ...VH_ROUNDS, ...ZOLLNER_ROUNDS, ...CONTRASTE_ROUNDS, ...COR_ROUNDS, ...CB_REFS, ...STROOP_REFS];
+    const iCounts = aggregateById(ALL_ILLUSION_DEFS, allResp, (r) => r.illusions || [], (s) => s.key);
+
+    let congT = 0, congN = 0, incT = 0, incN = 0;
+    allResp.forEach((r) => (r.illusions || []).forEach((e) => {
+      if (typeof e.reactionMs === "number" && e.congruent !== undefined) {
+        if (e.congruent) { congT += e.reactionMs; congN++; } else { incT += e.reactionMs; incN++; }
+      }
+    }));
+    const congAvg = congN ? Math.round(congT / congN) : null;
+    const incAvg = incN ? Math.round(incT / incN) : null;
+
+    render(`<div class="card" style="max-width:720px; text-align:left; min-height:auto;">
+      <h2 style="text-align:center">Painel do apresentador</h2><h1 style="text-align:center">Resultados ao vivo — ${allResp.length} participante(s)</h1>
+      <p class="small" style="text-align:center">${playingNow} jogando agora · ${allResp.length - playingNow} terminaram</p>
+      <p class="small" style="text-align:center; margin-bottom:12px">Pontuação média de quem terminou: <b>${avg} / ${TOTAL_STEPS}</b></p>
+      <div class="btn-row" style="justify-content:space-between"><button class="btn secondary" id="reset">Nova rodada (zera respostas)</button><button class="btn secondary" id="qr">Gerar QR code do link</button></div>
+      <div id="qrbox"></div>
+      <h2 style="margin-top:20px">Participantes</h2>
+      ${perStudent.length ? `<table class="participants-table"><thead><tr><th>Nome</th><th>Acertos</th><th>Respondidas</th><th>Tempo</th><th>Status</th></tr></thead><tbody>${perStudent.map((p) => `<tr><td>${esc(p.name)}</td><td>${p.correct}</td><td>${p.total}/${TOTAL_STEPS}</td><td>${p.finished ? fmtDuration(p.durationMs) : "—"}</td><td>${p.finished ? "✅ Terminou" : "🎮 Jogando"}</td></tr>`).join("")}</tbody></table>` : `<p class="small">Ninguém respondeu ainda nesta rodada.</p>`}
+      <h2 style="margin-top:20px">Tamanho</h2>
+      ${[...weberPairs].sort((a, b) => a.id.localeCompare(b.id)).map((p) => segBar(p.id, wCounts[p.id], { acertou: "#16a34a", errou: "#dc2626" })).join("")}
+      <h2>Quantidade</h2>
+      ${[...numerosityPairs].sort((a, b) => a.id.localeCompare(b.id)).map((p) => segBar(p.id, nCounts[p.id], { acertou: "#16a34a", errou: "#dc2626" })).join("")}
+      <h2>Demais etapas</h2>
+      ${(() => { if (congN + incN === 0) return ""; return `<div class="note">Nomeação de cores — tempo médio: <b>congruente ${congAvg ?? "-"} ms</b> (n=${congN}) · <b>incongruente ${incAvg ?? "-"} ms</b> (n=${incN}).</div>`; })()}
+      ${[...ALL_ILLUSION_DEFS].sort((a, b) => a.key.localeCompare(b.key)).map((s) => segBar(s.key, iCounts[s.key], { acertou: "#16a34a", errou: "#dc2626" })).join("")}
+      <div class="note">Rodada atual: <b>${roundId}</b>. Atualiza sozinho a cada 3s. Peça pra turma acessar o link <b>sem</b> "?painel=1" no celular.</div>
+    </div>`);
+    document.getElementById("reset").addEventListener("click", async () => { await newRound(); renderPainel(); });
+    document.getElementById("qr").addEventListener("click", () => {
+      const link = prompt("Cole aqui o link público deste artefato (sem ?painel=1):", window.location.href.split("?")[0]);
+      if (!link) return;
+      const box = document.getElementById("qrbox"); box.innerHTML = "";
+      new QRCode(box, { text: link, width: 180, height: 180 });
+    });
+  }
+  function startPainel() { renderPainel(); pollTimer = setInterval(renderPainel, 3000); }
+
+  if (isPainel) startPainel(); else askStudentName();
+})();
+</script>
+</body>
+</html>
