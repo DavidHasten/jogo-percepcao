@@ -63,6 +63,23 @@
   .score-table td.total { border-left: 2px solid #e3e1f4; border-right: 2px solid #e3e1f4; }
   .score-table tr.class-row td, .score-table tr.class-row td.name-col { background: #f1effb; }
   .score-table tr.class-row td.name-col { color: var(--accent2); }
+  .score-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 4px; border-bottom: 1px solid #f1f0fa; font-size: 14px; }
+  .score-row b { color: var(--accent2); }
+  .linklike { color: var(--accent2); font-size: 13px; text-decoration: underline; cursor: pointer; }
+  .dots-loader { display: flex; justify-content: center; align-items: center; gap: 9px; flex: 1; }
+  .dots-loader span { width: 13px; height: 13px; border-radius: 50%; animation: bounce 0.9s infinite ease-in-out; }
+  .dots-loader span:nth-child(1) { background: #06b6d4; }
+  .dots-loader span:nth-child(2) { background: #8b5cf6; animation-delay: 0.15s; }
+  .dots-loader span:nth-child(3) { background: #ec4899; animation-delay: 0.3s; }
+  .stroop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: auto; }
+  .stroop-swatch { width: 100%; height: 100px; border-radius: 16px; border: none; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.22), 0 8px 16px rgba(0,0,0,0.15); transition: transform 0.08s, box-shadow 0.08s; }
+  .stroop-swatch:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12); }
+  .cb-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: auto; }
+  .cb-num-btn { background: linear-gradient(135deg, #22d3ee, #6366f1); color: white; border: none; border-radius: 10px; padding: 10px 0; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 8px rgba(99,102,241,0.3); }
+  .cb-num-btn:active { transform: scale(0.93); }
+  .text-input { width: 100%; padding: 14px 16px; font-size: 16px; border-radius: 12px; border: 2px solid #e3e1f4; margin: 14px 0; font-family: 'Inter', sans-serif; }
+  .text-input:focus { outline: none; border-color: var(--accent2); }
+  @keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
 </style>
 </head>
 <body>
@@ -593,7 +610,7 @@
     render(`<div class="card">${topProgress(globalOffset + completedSoFar + 1)}<div class="progress">Rodada ${completedSoFar + 1} de ${target}</div>
       <h1>Clique no quadrado da COR da TINTA — não leia a palavra</h1>
       <div class="topbar"><div class="topbar-fill" id="sTimer"></div></div>
-      <div class="fig-wrap"><div style="font-size:42px; font-weight:800; letter-spacing:0.03em; color:${ink.hex}; text-shadow: 0 2px 4px rgba(0,0,0,0.08);">${word.name.toUpperCase()}</div></div>
+      <div class="fig-wrap" style="min-height:110px"><div style="font-size:42px; font-weight:800; letter-spacing:0.03em; color:${ink.hex}; text-shadow: 0 2px 4px rgba(0,0,0,0.08);">${word.name.toUpperCase()}</div></div>
       <div class="stroop-grid" id="stroopGrid" style="visibility:hidden">${STROOP_COLORS.map((c, k) => `<button class="stroop-swatch" id="c${k}" style="background:${c.hex}" aria-label="${c.name}"></button>`).join("")}</div>
     </div>`);
     let t0;
