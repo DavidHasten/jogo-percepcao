@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, must-revalidate">
 <title>Sensação e Percepção — Jogo</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" crossorigin="anonymous"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" crossorigin="anonymous"></script>
@@ -741,7 +742,7 @@
   // "pouco" 8% / "muito" 28%. Antes era 2% / 18%: 2% são ~1px, invisível — três das cinco
   // rodadas pareciam iguais e a pessoa não via as formas mudarem de tamanho.
   const JASTROW_ROUNDS = ratioSet5("jastrow", 1.08, 1.28);
-  const VH_ROUNDS = comparativeSet5("vh", 150, 1.08, 1.3);
+  const VH_ROUNDS = comparativeSet5("vh", 150, 1.15, 1.3);
   const CONTRASTE_ROUNDS = comparativeSetAbs5("contraste", 130, 10, 25);
   const COR_ROUNDS = comparativeSetAbs5("cor", 0, 12, 28);
   const CB_REFS = CB_KINDS.map((k, i) => ({ key: `cegueira_${i}` }));
