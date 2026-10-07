@@ -49,37 +49,20 @@
   .dots-box { background: #f6f5fc; border-radius: 12px; padding: 8px; box-shadow: inset 0 0 0 1px #e3e1f4; }
   .dots-label { margin-top: 6px; font-weight: 700; color: var(--text); font-size: 14px; }
   .small { font-size: 11px; color: var(--muted); }
-  .table-scroll { overflow-x: auto; margin: 10px -6px 4px; padding: 0 6px; }
-  .score-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
-  .score-table th { color: var(--muted); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 6px; border-bottom: 2px solid #e3e1f4; text-align: center; vertical-align: bottom; line-height: 1.25; }
-  .score-table th.name-col, .score-table td.name-col { text-align: left; position: sticky; left: 0; background: #fff; padding-left: 8px; min-width: 110px; }
-  .score-table td { padding: 7px 6px; border-bottom: 1px solid #f1f0fa; text-align: center; white-space: nowrap; }
-  .score-table td.name-col { font-weight: 600; color: var(--text); white-space: normal; }
-  .score-table .pcell b { display: block; font-size: 13px; color: var(--text); }
-  .score-table .pcell span { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
-  .score-table tr.class-row td { background: #f6f5fc; border-bottom: 2px solid #e3e1f4; }
-  .score-table tr.class-row td.name-col { background: #f6f5fc; color: var(--accent2); }
-  .score-table tr:last-child td { border-bottom: none; }
-  #qrbox { margin-top: 12px; display: flex; justify-content: center; }
-  .badge { display: inline-block; background: linear-gradient(135deg, #ecfeff, #f3e8ff); color: #7c3aed; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px; margin-bottom: 10px; }
-  .note { font-size: 12px; color: var(--muted); background: #f6f5fc; border-radius: 10px; padding: 10px 12px; margin-top: 14px; text-align: left; }
-  .score-row { display: flex; justify-content: space-between; align-items: center; padding: 9px 4px; border-bottom: 1px solid #f1f0fa; font-size: 14px; }
-  .score-row b { color: var(--accent2); }
-  .linklike { color: var(--accent2); font-size: 13px; text-decoration: underline; cursor: pointer; }
-  .dots-loader { display: flex; justify-content: center; align-items: center; gap: 9px; flex: 1; }
-  .dots-loader span { width: 13px; height: 13px; border-radius: 50%; animation: bounce 0.9s infinite ease-in-out; }
-  .dots-loader span:nth-child(1) { background: #06b6d4; }
-  .dots-loader span:nth-child(2) { background: #8b5cf6; animation-delay: 0.15s; }
-  .dots-loader span:nth-child(3) { background: #ec4899; animation-delay: 0.3s; }
-  @keyframes bounce { 0%, 80%, 100% { transform: scale(0.6); opacity: 0.5; } 40% { transform: scale(1); opacity: 1; } }
-  .stroop-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: auto; }
-  .stroop-swatch { width: 100%; height: 118px; border-radius: 16px; border: none; cursor: pointer; box-shadow: 0 5px 0 rgba(0,0,0,0.22), 0 8px 16px rgba(0,0,0,0.15); transition: transform 0.08s, box-shadow 0.08s; }
-  .stroop-swatch:active { transform: translateY(4px); box-shadow: 0 1px 0 rgba(0,0,0,0.22), 0 2px 6px rgba(0,0,0,0.12); }
-  .cb-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; margin-top: auto; }
-  .cb-num-btn { background: linear-gradient(135deg, #22d3ee, #6366f1); color: white; border: none; border-radius: 10px; padding: 10px 0; font-size: 13px; font-weight: 700; cursor: pointer; box-shadow: 0 3px 8px rgba(99,102,241,0.3); }
-  .cb-num-btn:active { transform: scale(0.93); }
-  .text-input { width: 100%; padding: 14px 16px; font-size: 16px; border-radius: 12px; border: 2px solid #e3e1f4; margin: 14px 0; font-family: 'Inter', sans-serif; }
-  .text-input:focus { outline: none; border-color: var(--accent2); }
+  .table-scroll { overflow-x: auto; margin: 14px -6px 4px; padding: 0 6px; }
+  .score-table { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 16px; }
+  .score-table th { color: var(--muted); font-weight: 600; font-size: 12px; padding: 4px 6px 8px; text-align: center; vertical-align: bottom; line-height: 1.25; }
+  .score-table th.name-col, .score-table td.name-col { text-align: left; position: sticky; left: 0; z-index: 1; background: #fff; padding-left: 10px; min-width: 150px; }
+  .score-table td { padding: 10px 6px; text-align: center; white-space: nowrap; }
+  .score-table td.name-col { font-weight: 700; color: var(--text); white-space: normal; }
+  .score-table td.name-col .rank { display: inline-block; min-width: 26px; color: var(--muted); font-weight: 600; }
+  .score-table td.name-col .live { display: block; margin-left: 26px; font-size: 11.5px; font-weight: 500; color: var(--accent2); }
+  .score-table .pcell b { font-size: 17px; color: var(--text); }
+  .score-table .pcell span { display: block; font-size: 11px; color: var(--muted); font-weight: 500; }
+  .score-table td.empty { color: #c9c6dd; }
+  .score-table td.total { border-left: 2px solid #e3e1f4; border-right: 2px solid #e3e1f4; }
+  .score-table tr.class-row td, .score-table tr.class-row td.name-col { background: #f1effb; }
+  .score-table tr.class-row td.name-col { color: var(--accent2); }
 </style>
 </head>
 <body>
@@ -292,7 +275,8 @@
   // externa longa da outra. Efeito perceptivo mais forte e mais difícil de "driblar"
   // olhando com calma do que o Müller-Lyer — ótimo pra "bugar" a sensação de quem joga.
   // Exibida por tempo limitado — ver illusionShellTimed.
-  const JASTROW_EXPOSURE_MS = 900;
+  // Tempo na tela sorteado a cada rodada (antes: fixo em 900 ms).
+  const JASTROW_EXPOSURE_MIN_MS = 500, JASTROW_EXPOSURE_MAX_MS = 800;
   function ringSectorPath(cx, cy, rInner, rOuter, startDeg, endDeg) {
     const pt = (r, deg) => { const rad = (deg * Math.PI) / 180; return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]; };
     const [x1, y1] = pt(rOuter, startDeg), [x2, y2] = pt(rOuter, endDeg);
@@ -301,31 +285,40 @@
     return `M ${x1} ${y1} A ${rOuter} ${rOuter} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 ${large} 0 ${x4} ${y4} Z`;
   }
   function renderJastrow(idx, total, round, done) {
-    const base = 42 + Math.random() * 14; // 42 a 56 (com razão até 1,28 o maior fica < 72)
+    const base = 40 + Math.random() * 14; // 40 a 54 (com razão até 1,28 o maior fica < 70)
     const valA = round.ratioA * base, valB = round.ratioB * base;
     const swapPos = round.swap !== undefined ? round.swap : coin();
     const topVal = swapPos ? valB : valA; const botVal = swapPos ? valA : valB;
-    const W = 290, H = 230, cx = W / 2;
+    const W = 300, H = 250;
     const startDeg = 200, endDeg = 340, innerRatio = 0.55;
     // Caixa real de cada forma: do topo do arco (cy - r) até o canto interno das pontas
-    // (cy - innerRatio*sen(20°)*r). O conjunto (rótulo A + forma + vão + forma + rótulo B)
-    // é medido e centralizado no quadro, então o "B" nunca sai da moldura.
+    // (cy - innerRatio*sen(20°)*r); metade da largura = r*cos(20°).
     const lowFrac = innerRatio * Math.sin((20 * Math.PI) / 180);
     const hTop = (1 - lowFrac) * topVal, hBot = (1 - lowFrac) * botVal;
-    const LABEL = 24, GAP = 16;
-    const y0 = (H - (LABEL + hTop + GAP + hBot + LABEL)) / 2;
+    const halfW = (r) => r * Math.cos((20 * Math.PI) / 180);
+    // Posição sorteada a cada rodada: vão entre as formas (10-36), deslocamento lateral de
+    // uma em relação à outra (até ±50) e posição do conjunto inteiro dentro da moldura.
+    // Tudo medido, então nada (nem os rótulos A e B) sai do quadro.
+    const LABEL = 24, M = 8, GAP = 10 + Math.random() * 26;
+    const off = (Math.random() * 2 - 1) * 50;
+    const xl = Math.min(-halfW(topVal), off - halfW(botVal)), xr = Math.max(halfW(topVal), off + halfW(botVal));
+    const cxTop = M - xl + Math.random() * Math.max(0, W - 2 * M - (xr - xl));
+    const cxBot = cxTop + off;
+    const groupH = LABEL + hTop + GAP + hBot + LABEL;
+    const y0 = M + Math.random() * Math.max(0, H - 2 * M - groupH);
     const topShapeTop = y0 + LABEL, botShapeTop = topShapeTop + hTop + GAP;
     const cyTop = topShapeTop + topVal, cyBot = botShapeTop + botVal;
-    const pathTop = ringSectorPath(cx, cyTop, topVal * innerRatio, topVal, startDeg, endDeg);
-    const pathBot = ringSectorPath(cx, cyBot, botVal * innerRatio, botVal, startDeg, endDeg);
-    const content = `<text x="${cx}" y="${(topShapeTop - 8).toFixed(1)}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">A</text>
+    const pathTop = ringSectorPath(cxTop, cyTop, topVal * innerRatio, topVal, startDeg, endDeg);
+    const pathBot = ringSectorPath(cxBot, cyBot, botVal * innerRatio, botVal, startDeg, endDeg);
+    const content = `<text x="${cxTop.toFixed(1)}" y="${(topShapeTop - 8).toFixed(1)}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">A</text>
       <path d="${pathTop}" fill="#6366f1"/>
       <path d="${pathBot}" fill="#22d3ee"/>
-      <text x="${cx}" y="${(botShapeTop + hBot + 20).toFixed(1)}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">B</text>`;
+      <text x="${cxBot.toFixed(1)}" y="${(botShapeTop + hBot + 20).toFixed(1)}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">B</text>`;
     const svg = frameSvg(W, H, content);
-    const placeholder = frameSvg(W, H, `<text x="${cx}" y="${H / 2}" text-anchor="middle" font-size="14" fill="#b4aee0">?</text>`);
+    const placeholder = frameSvg(W, H, `<text x="${W / 2}" y="${H / 2}" text-anchor="middle" font-size="14" fill="#b4aee0">?</text>`);
     const correct = topVal === botVal ? "igual" : (topVal > botVal ? "A" : "B");
-    illusionShellTimed(idx, total, "Qual forma parecia maior?", svg, placeholder, JASTROW_EXPOSURE_MS, [{ label: "Forma A", value: "A" }, { label: "Forma B", value: "B" }, { label: "Mesmo tamanho", value: "igual", secondary: true }], correct, done);
+    const exposureMs = Math.round(JASTROW_EXPOSURE_MIN_MS + Math.random() * (JASTROW_EXPOSURE_MAX_MS - JASTROW_EXPOSURE_MIN_MS));
+    illusionShellTimed(idx, total, "Qual forma parecia maior?", svg, placeholder, exposureMs, [{ label: "Forma A", value: "A" }, { label: "Forma B", value: "B" }, { label: "Mesmo tamanho", value: "igual", secondary: true }], correct, done);
   }
 
   // Vários "cenários" de contexto sorteados por rodada (tamanho da base e número/tamanho
@@ -345,6 +338,7 @@
   // Faixa do alvo reduzida (14-24, razão até 1,25) pra garantir que ele nunca alcance
   // os círculos de contexto ao redor — antes o alvo podia ficar maior que a distância
   // até os círculos pequenos, sobrepondo tudo. Distâncias recalculadas com folga real.
+  const EBB_SCATTER_COUNT = 50; // círculos soltos por rodada
   const EBB_SCENARIOS = [
     { n: 6, rSmall: 10, dSmall: 45, rLarge: 24, dLarge: 60 },
     { n: 7, rSmall: 9, dSmall: 44, rLarge: 23, dLarge: 59 },
@@ -370,13 +364,20 @@
       }
       return out;
     }
-    // Ruído de fundo: pontinhos espalhados pela moldura toda, atrás de tudo, só pra
-    // confundir um pouco mais a leitura visual — não tem função na resposta certa.
-    function bgNoise(canvas, count) {
-      let out = "";
-      for (let i = 0; i < count; i++) {
-        const x = Math.random() * canvas, y = Math.random() * canvas, r = 2.5 + Math.random() * 4;
-        out += `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#c4bdf0" opacity="${(0.15 + Math.random() * 0.2).toFixed(2)}"/>`;
+    // Círculos soltos espalhados pela moldura toda (≈50): só atrapalham a busca visual, não
+    // têm função na resposta. São vazados/claros — nunca roxos cheios como os alvos — e
+    // nunca cobrem os alvos nem as etiquetas A/B.
+    function scatterCircles(count, avoid) {
+      let out = "", placed = 0, tries = 0;
+      while (placed < count && tries < 6000) {
+        tries++;
+        const r = 6 + Math.random() * 15; // 6 a 21
+        const x = r + 4 + Math.random() * (CANVAS - 2 * (r + 4)), y = r + 4 + Math.random() * (CANVAS - 2 * (r + 4));
+        if (avoid.some((a) => Math.hypot(x - a.x, y - a.y) < a.r + r + 6)) continue;
+        out += coin()
+          ? `<circle class="sc" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="none" stroke="#b4aee0" stroke-width="2"/>`
+          : `<circle class="sc" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="${r.toFixed(1)}" fill="#d8d3f3" opacity="0.75"/>`;
+        placed++;
       }
       return out;
     }
@@ -384,7 +385,11 @@
       return `<circle cx="${p.x}" cy="${p.y + 60}" r="13" fill="#1e1b2e"/><text x="${p.x}" y="${p.y + 65}" text-anchor="middle" font-size="14" fill="#fff" font-weight="700">${text}</text>`;
     }
     const offset1 = Math.random() * 2 * Math.PI, offset2 = Math.random() * 2 * Math.PI;
-    const content = `${bgNoise(CANVAS, 34)}
+    const scatter = scatterCircles(EBB_SCATTER_COUNT, [
+      { x: p1.x, y: p1.y, r: val1 + 6 }, { x: p2.x, y: p2.y, r: val2 + 6 },
+      { x: p1.x, y: p1.y + 60, r: 13 }, { x: p2.x, y: p2.y + 60, r: 13 },
+    ]);
+    const content = `${scatter}
       <g>${ring(p1.x, p1.y, firstSmallCtx, offset1)}<circle cx="${p1.x}" cy="${p1.y}" r="${val1.toFixed(1)}" fill="#6366f1"/></g>${label(p1, "A")}
       <g>${ring(p2.x, p2.y, !firstSmallCtx, offset2)}<circle cx="${p2.x}" cy="${p2.y}" r="${val2.toFixed(1)}" fill="#6366f1"/></g>${label(p2, "B")}`;
     const svg = frameSvg(CANVAS, CANVAS, content);
@@ -464,10 +469,13 @@
     illusionShell(idx, total, "Qual quadrado colorido pequeno (no meio de cada fundo) parece mais quente/alaranjado?", svg, [{ label: "Esquerdo", value: "esquerdo" }, { label: "Direito", value: "direito" }, { label: "Mesma cor", value: "igual", secondary: true }], correct, done);
   }
 
-  // ---- Observação de cena: 20 elementos (era 15), mudanças mais sutis: cor desloca
-  // pra um tom próximo (não troca de cor totalmente), tamanho cresce menos, o "sumiço"
-  // vira esmaecimento parcial (não invisibilidade total), e o deslocamento é menor. ----
-  const CB_N = 20;
+  // ---- Observação de cena ----
+  // Medido no código antigo: a cor mudava em média 31 de 441 possíveis (quase idêntica), o
+  // raio crescia ~3px, o deslocamento ia de 4 a 18px, o sumiço era só meia opacidade — tudo
+  // isso com 20 formas e um flicker de 80ms entre os quadros — e 2 das 7 rodadas nem tinham
+  // mudança. Resultado: na prática ninguém via nada mudar. Agora: menos formas, maiores, e
+  // toda mudança é grande (ver cbApplyMutation); só 1 das 7 rodadas é "nada mudou".
+  const CB_N = 16;
   const CB_PALETTE = ["#ef4444", "#06b6d4", "#22c55e", "#f59e0b", "#a855f7", "#ec4899", "#14b8a6", "#6366f1"];
   const CB_TYPE_POOL = ["circle", "rect", "triangle"];
   function cbScatter(n, w, h) {
@@ -486,7 +494,7 @@
     const pos = cbScatter(CB_N, 260, 190);
     return pos.map((p) => ({
       type: CB_TYPE_POOL[Math.floor(Math.random() * CB_TYPE_POOL.length)],
-      x: p.x, y: p.y, size: 9,
+      x: p.x, y: p.y, size: 11,
       color: CB_PALETTE[Math.floor(Math.random() * CB_PALETTE.length)],
       opacity: 1,
     }));
@@ -502,29 +510,40 @@
     const labels = shapes.map((s, i) => `<circle cx="${s.x}" cy="${Math.max(12, s.y - s.size - 9)}" r="7.5" fill="#1e1b2e"/><text x="${s.x}" y="${Math.max(15, s.y - s.size - 6)}" text-anchor="middle" font-size="8" fill="#fff" font-weight="700">${i + 1}</text>`).join("");
     return frameSvg(260, 190, body + labels);
   }
-  function subtleColorShift(hex) {
-    const r = parseInt(hex.slice(1, 3), 16), g = parseInt(hex.slice(3, 5), 16), b = parseInt(hex.slice(5, 7), 16);
-    const amt = 12 + Math.random() * 14; // 12 a 26 — desloca o tom, não troca de cor
-    const adj = (v) => Math.min(230, Math.max(25, v + (coin() ? amt : -amt)));
-    return `rgb(${Math.round(adj(r))},${Math.round(adj(g))},${Math.round(adj(b))})`;
+  function cbRgb(hex) { return [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16)); }
+  function cbDist(a, b) { return Math.hypot(a[0] - b[0], a[1] - b[1], a[2] - b[2]); }
+  // Nova cor da paleta bem diferente da original (distância RGB >= 130 de 441).
+  function cbFarColor(hex) {
+    const far = CB_PALETTE.filter((c) => cbDist(cbRgb(c), cbRgb(hex)) >= 130);
+    return far[Math.floor(Math.random() * far.length)];
+  }
+  // Novo ponto 34-44px de distância, dentro do quadro (testa direções até achar uma que caiba).
+  function cbMovedPosition(s) {
+    const dist = 34 + Math.random() * 10, start = Math.random() * 2 * Math.PI;
+    for (let k = 0; k < 16; k++) {
+      const a = start + k * (Math.PI / 8), x = s.x + dist * Math.cos(a), y = s.y + dist * Math.sin(a);
+      if (x >= 16 && x <= 244 && y >= 16 && y <= 174) return { x: Math.round(x), y: Math.round(y) };
+    }
+    return { x: s.x, y: s.y };
   }
   function cbApplyMutation(shapesA, kind) {
     if (kind === "none") return { shapesB: shapesA.map((s) => ({ ...s })), changedIndex: -1 };
     const i = Math.floor(Math.random() * shapesA.length);
     const shapesB = shapesA.map((s) => ({ ...s }));
-    if (kind === "color") { shapesB[i].color = subtleColorShift(shapesA[i].color); }
-    else if (kind === "size") { shapesB[i].size = shapesA[i].size + (2 + Math.random() * 2.5); }
-    else if (kind === "disappear") { shapesB[i].opacity = 0.35 + Math.random() * 0.2; }
-    else if (kind === "shapetype") { const others = CB_TYPE_POOL.filter((t) => t !== shapesA[i].type); shapesB[i].type = others[Math.floor(Math.random() * others.length)]; }
-    else if (kind === "move") {
-      const dx = (coin() ? 1 : -1) * (6 + Math.random() * 8), dy = (coin() ? 1 : -1) * (6 + Math.random() * 6);
-      shapesB[i].x = Math.min(245, Math.max(15, shapesA[i].x + dx));
-      shapesB[i].y = Math.min(175, Math.max(15, shapesA[i].y + dy));
+    if (kind === "color") { shapesB[i].color = cbFarColor(shapesA[i].color); }
+    else if (kind === "size") {
+      const big = shapesA[i].size * 1.8; shapesB[i].size = big;
+      // a forma ampliada não pode encostar/sair da moldura (260x190)
+      shapesB[i].x = Math.min(260 - big - 3, Math.max(big + 3, shapesA[i].x));
+      shapesB[i].y = Math.min(190 - big - 3, Math.max(big + 3, shapesA[i].y));
     }
+    else if (kind === "disappear") { shapesB[i].opacity = 0.08; }
+    else if (kind === "shapetype") { const others = CB_TYPE_POOL.filter((t) => t !== shapesA[i].type); shapesB[i].type = others[Math.floor(Math.random() * others.length)]; }
+    else if (kind === "move") { const pos = cbMovedPosition(shapesA[i]); shapesB[i].x = pos.x; shapesB[i].y = pos.y; }
     return { shapesB, changedIndex: i };
   }
-  const CB_KINDS = ["color", "size", "disappear", "move", "shapetype", "none", "none"];
-  const CB_FRAME_MS = 220, CB_BLANK_MS = 80, CB_CYCLES = 4;
+  const CB_KINDS = ["color", "size", "disappear", "move", "shapetype", "color", "none"]; // 6 mudanças + 1 "nada mudou"
+  const CB_FRAME_MS = 220, CB_BLANK_MS = 80, CB_CYCLES = 5;
   function renderCegueiraMudanca(idx, total, kind, done) {
     const shapesA = cbFreshShapes();
     const { shapesB, changedIndex } = cbApplyMutation(shapesA, kind);
@@ -729,7 +748,7 @@
     { title: "Linhas paralelas", count: ZOLLNER_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas linhas pretas na vertical, cada uma cruzada por pequenos traços diagonais. Sua tarefa: dizer se essas duas linhas pretas são paralelas entre si (ou seja, se apontam exatamente na mesma direção) ou não.", run: (onDone) => runSimpleBlock(ZOLLNER_ROUNDS, renderZollner, onDone, { answerFn: ansZollner, maxRun: 2, maxPerAnswer: 3 }) },
     { title: "Tons de cinza", count: CONTRASTE_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados cinzas pequenos, cada um no centro de um fundo diferente (um escuro, um claro). Sua tarefa: dizer qual dos dois quadrados cinzas parece mais escuro, ou se os dois parecem exatamente do mesmo tom.", run: (onDone) => runSimpleBlock(CONTRASTE_ROUNDS, renderContrasteSimultaneo, onDone, PLAN_5(ansGray)) },
     { title: "Tons de cor", count: COR_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados coloridos pequenos, cada um no centro de um fundo diferente (um azul, um amarelo). Sua tarefa: dizer qual dos dois quadrados parece ter uma cor mais quente (mais alaranjada), ou se as duas cores parecem iguais.", run: (onDone) => runSimpleBlock(COR_ROUNDS, renderContrasteCor, onDone, PLAN_5(ansWarm)) },
-    { title: "Observação de cena", count: CB_KINDS.length, introSeconds: 2, objetivo: "Uma cena cheia de formas coloridas vai aparecer e piscar algumas vezes, rapidamente. Preste bastante atenção em cada forma individualmente. Quando ela parar de piscar, você vai apontar qual das formas mudou (de cor, tamanho ou posição, ou ficou mais fraca/apagada) — ou dizer que nada mudou.", run: runCegueiraBlock },
+    { title: "Observação de cena", count: CB_KINDS.length, introSeconds: 2, objetivo: "Uma cena cheia de formas coloridas vai aparecer e piscar algumas vezes, rapidamente. Preste bastante atenção em cada forma individualmente. Quando ela parar de piscar, você vai apontar qual das formas mudou (de cor, tamanho, posição ou formato, ou sumiu/ficou apagada) — ou dizer que nada mudou.", run: runCegueiraBlock },
     {
       title: "Nomeação de cores", count: STROOP_REFS.length, introSeconds: 4,
       objetivo: "Uma palavra aparece na tela, escrita com tinta de uma cor — ignore o que ela diz. Clique no quadrado com a mesma cor da TINTA. Exemplo: palavra \"AZUL\" escrita em vermelho → clique no quadrado vermelho. Os quadrados aparecem 0,2s depois da palavra, e você tem 1 segundo pra responder.",
@@ -901,10 +920,9 @@
     new QRCode(box, { text: qrLink, width: 180, height: 180 });
   }
   function pctTint(pct) {
-    if (pct === null) return "transparent";
-    if (pct >= 70) return "rgba(22,163,74,0.16)";
-    if (pct >= 40) return "rgba(245,158,11,0.20)";
-    return "rgba(220,38,38,0.14)";
+    if (pct >= 70) return "#d6f0df";   // verde
+    if (pct >= 40) return "#fdecc8";   // amarelo
+    return "#fadadd";                  // vermelho
   }
 
   async function renderPainel() {
@@ -918,29 +936,40 @@
 
     const rows = allResp.map((r) => {
       const games = gameScores(r.weber || [], r.numerosity || [], r.illusions || []);
-      return { name: r.student_name || "(sem nome)", games, totalCorrect: games.reduce((s, g) => s + g.correct, 0), createdAt: r.created_at || "", finished: !!r.finished };
-    }).sort((a, b) => (b.totalCorrect - a.totalCorrect) || a.createdAt.localeCompare(b.createdAt));
-    const playingNow = rows.filter((p) => !p.finished).length;
+      const correct = games.reduce((s, g) => s + g.correct, 0), answered = games.reduce((s, g) => s + g.total, 0);
+      return { name: r.student_name || "(sem nome)", games, correct, answered, createdAt: r.created_at || "", finished: !!r.finished };
+    });
+    // Ranking: quem terminou, por acertos; quem ainda está jogando aparece depois, sem posição.
+    const byScore = (a, b) => (b.correct - a.correct) || a.createdAt.localeCompare(b.createdAt);
+    const finished = rows.filter((r) => r.finished).sort(byScore), playing = rows.filter((r) => !r.finished).sort(byScore);
+    const ordered = [...finished, ...playing];
 
-    // Acerto da turma por jogo: soma de acertos / soma de respostas dadas naquele jogo.
-    const classAgg = BLOCK_PREFIXES.map((_, gi) => rows.reduce((acc, r) => ({ correct: acc.correct + r.games[gi].correct, total: acc.total + r.games[gi].total }), { correct: 0, total: 0 }));
+    const classGames = BLOCK_PREFIXES.map((_, gi) => rows.reduce((acc, r) => ({ correct: acc.correct + r.games[gi].correct, total: acc.total + r.games[gi].total }), { correct: 0, total: 0 }));
+    const classTotal = rows.reduce((acc, r) => ({ correct: acc.correct + r.correct, total: acc.total + r.answered }), { correct: 0, total: 0 });
 
-    const head = `<tr><th class="name-col">Nome</th>${BLOCK_PREFIXES.map((b) => `<th>${b.title}</th>`).join("")}</tr>`;
-    const classRow = `<tr class="class-row"><td class="name-col">Turma</td>${classAgg.map((g) => {
+    // Cada célula de jogo mostra só a %; os acertos (ex.: 4/5) ficam no tooltip.
+    const gameCell = (g) => {
       const pct = pctOf(g.correct, g.total);
-      return pct === null ? `<td class="pcell">—</td>` : `<td class="pcell"><b>${pct}%</b><span>${g.correct}/${g.total}</span></td>`;
-    }).join("")}</tr>`;
-    const body = rows.map((r) => `<tr><td class="name-col">${esc(r.name)}</td>${r.games.map((g) => {
-      const pct = pctOf(g.correct, g.total);
-      return pct === null ? `<td class="pcell">—</td>` : `<td class="pcell" style="background:${pctTint(pct)}"><b>${g.correct}/${g.total}</b><span>${pct}%</span></td>`;
-    }).join("")}</tr>`).join("");
+      return pct === null ? `<td class="pcell empty">·</td>` : `<td class="pcell" style="background:${pctTint(pct)}" title="${g.correct} de ${g.total} acertos"><b>${pct}%</b></td>`;
+    };
+    const totalCell = (t) => {
+      const pct = pctOf(t.correct, t.total);
+      return pct === null ? `<td class="pcell total empty">·</td>` : `<td class="pcell total" style="background:${pctTint(pct)}"><b>${pct}%</b><span>${t.correct}/${t.total}</span></td>`;
+    };
+    const medals = ["🥇", "🥈", "🥉"];
+    const head = `<tr><th class="name-col"></th><th>Total</th>${BLOCK_PREFIXES.map((b) => `<th>${b.title}</th>`).join("")}</tr>`;
+    const classRow = `<tr class="class-row"><td class="name-col"><span class="rank"></span>Turma</td>${totalCell(classTotal)}${classGames.map(gameCell).join("")}</tr>`;
+    const body = ordered.map((r, i) => {
+      const rank = r.finished ? (medals[finished.indexOf(r)] || `${finished.indexOf(r) + 1}º`) : "";
+      return `<tr><td class="name-col"><span class="rank">${rank}</span>${esc(r.name)}${r.finished ? "" : `<span class="live">jogando…</span>`}</td>${totalCell({ correct: r.correct, total: r.answered })}${r.games.map(gameCell).join("")}</tr>`;
+    }).join("");
 
     render(`<div class="card" style="max-width:1180px; text-align:left; min-height:auto;">
-      <h2 style="text-align:center">Painel do apresentador</h2><h1 style="text-align:center">Placar ao vivo — ${rows.length} participante(s)</h1>
-      <p class="small" style="text-align:center; margin-bottom:12px">${playingNow} jogando agora · ${rows.length - playingNow} terminaram</p>
+      <h1 style="text-align:center; margin-bottom:4px">Placar ao vivo</h1>
+      <p class="small" style="text-align:center; margin-bottom:12px">${rows.length} jogador(es) · ${playing.length} jogando agora</p>
       <div class="btn-row" style="justify-content:space-between"><button class="btn secondary" id="reset">Nova rodada (zera respostas)</button><button class="btn secondary" id="qr">Gerar QR code do link</button></div>
       <div id="qrbox"></div>
-      ${rows.length ? `<div class="table-scroll"><table class="score-table"><thead>${head}</thead><tbody>${classRow}${body}</tbody></table></div>` : `<p class="small" style="margin-top:16px">Ninguém respondeu ainda nesta rodada.</p>`}
+      ${rows.length ? `<div class="table-scroll"><table class="score-table"><thead>${head}</thead><tbody>${classRow}${body}</tbody></table></div>` : `<p class="small" style="margin-top:16px; text-align:center">Ninguém respondeu ainda nesta rodada.</p>`}
     </div>`);
     document.getElementById("reset").addEventListener("click", async () => { await newRound(); renderPainel(); });
     document.getElementById("qr").addEventListener("click", () => { qrLink = window.location.href.split("?")[0]; drawQr(); });
