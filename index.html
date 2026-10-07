@@ -48,15 +48,18 @@
   .dots-row { display: flex; justify-content: center; gap: 22px; }
   .dots-box { background: #f6f5fc; border-radius: 12px; padding: 8px; box-shadow: inset 0 0 0 1px #e3e1f4; }
   .dots-label { margin-top: 6px; font-weight: 700; color: var(--text); font-size: 14px; }
-  .dash-row { text-align: left; margin-bottom: 12px; }
-  .dash-row .q { font-size: 12px; color: var(--muted); margin-bottom: 5px; }
-  .dash-bar-bg { background: #e9e7f5; border-radius: 8px; height: 18px; overflow: hidden; display: flex; }
-  .dash-bar-seg { height: 100%; display: flex; align-items: center; justify-content: center; font-size: 10px; color: white; font-weight: 700; white-space: nowrap; overflow: hidden; }
   .small { font-size: 11px; color: var(--muted); }
-  .participants-table { width: 100%; border-collapse: collapse; margin: 10px 0 4px; font-size: 12.5px; }
-  .participants-table th { text-align: left; color: var(--muted); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 4px 8px; border-bottom: 1px solid #e3e1f4; }
-  .participants-table td { padding: 6px 8px; border-bottom: 1px solid #f1f0fa; }
-  .participants-table tr:last-child td { border-bottom: none; }
+  .table-scroll { overflow-x: auto; margin: 10px -6px 4px; padding: 0 6px; }
+  .score-table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 13px; }
+  .score-table th { color: var(--muted); font-weight: 600; font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; padding: 6px 6px; border-bottom: 2px solid #e3e1f4; text-align: center; vertical-align: bottom; line-height: 1.25; }
+  .score-table th.name-col, .score-table td.name-col { text-align: left; position: sticky; left: 0; background: #fff; padding-left: 8px; min-width: 110px; }
+  .score-table td { padding: 7px 6px; border-bottom: 1px solid #f1f0fa; text-align: center; white-space: nowrap; }
+  .score-table td.name-col { font-weight: 600; color: var(--text); white-space: normal; }
+  .score-table .pcell b { display: block; font-size: 13px; color: var(--text); }
+  .score-table .pcell span { display: block; font-size: 10.5px; color: var(--muted); margin-top: 1px; }
+  .score-table tr.class-row td { background: #f6f5fc; border-bottom: 2px solid #e3e1f4; }
+  .score-table tr.class-row td.name-col { background: #f6f5fc; color: var(--accent2); }
+  .score-table tr:last-child td { border-bottom: none; }
   #qrbox { margin-top: 12px; display: flex; justify-content: center; }
   .badge { display: inline-block; background: linear-gradient(135deg, #ecfeff, #f3e8ff); color: #7c3aed; font-size: 12px; font-weight: 700; padding: 5px 12px; border-radius: 999px; margin-bottom: 10px; }
   .note { font-size: 12px; color: var(--muted); background: #f6f5fc; border-radius: 10px; padding: 10px 12px; margin-top: 14px; text-align: left; }
@@ -127,6 +130,38 @@
     }
     return result;
   }
+  // ---- Variedade das respostas certas ----
+  // Antes o lado/ordem era sorteado rodada a rodada, sem controle, então a mesma resposta
+  // certa podia cair várias vezes seguidas (e a pessoa acabava apertando o mesmo botão).
+  // planSequence sorteia a ordem das rodadas E o lado em que cada uma aparece até a
+  // sequência de respostas certas ficar variada.
+  function maxRunOf(arr) {
+    let best = 0, run = 0, prev;
+    arr.forEach((x, i) => { run = i > 0 && x === prev ? run + 1 : 1; prev = x; if (run > best) best = run; });
+    return best;
+  }
+  function maxCountOf(arr) {
+    const c = {}; arr.forEach((x) => { c[x] = (c[x] || 0) + 1; });
+    return Math.max(0, ...Object.values(c));
+  }
+  // answerFn(item, swap) -> resposta certa daquele item com aquele lado.
+  // opts: maxRun (mesma resposta seguida), maxPerAnswer (quantas vezes uma resposta pode
+  // aparecer no bloco), extraOk(itensEmOrdem) (restrição extra). Devolve [{item, swap}]
+  // ou null se não achou nenhuma ordem que cumpra tudo (quem chama decide o plano B).
+  function planSequence(items, answerFn, opts) {
+    const o = Object.assign({ maxRun: 2, maxPerAnswer: Infinity, extraOk: null, tries: 30000 }, opts || {});
+    for (let t = 0; t < o.tries; t++) {
+      const order = shuffle(items).map((it) => ({ item: it, swap: coin() }));
+      const answers = order.map((x) => answerFn(x.item, x.swap));
+      if (maxRunOf(answers) > o.maxRun) continue;
+      if (maxCountOf(answers) > o.maxPerAnswer) continue;
+      if (o.extraOk && !o.extraOk(order.map((x) => x.item))) continue;
+      return order;
+    }
+    return null;
+  }
+  function noAdjacentGroup(items) { return items.every((it, i) => i === 0 || it.group !== items[i - 1].group); }
+
   function frameSvg(w, h, content) {
     return `<svg viewBox="0 0 ${w} ${h}" width="100%"><rect x="1" y="1" width="${w - 2}" height="${h - 2}" fill="none" stroke="#ddd6f5" stroke-width="2" rx="10"/>${content}</svg>`;
   }
@@ -151,7 +186,13 @@
     weberPairs.push({ id: `w_${b.nome}_dificil`, group: b.nome, a: b.px, b: Math.round(b.px * RATIO_DIFICIL), correctType: "diferente" });
     weberPairs.push({ id: `w_${b.nome}_igual`, group: b.nome, a: b.px, b: b.px, correctType: "igual" });
   });
-  weberPairs = interleaveNoAdjacent(weberPairs, (x) => x.group);
+  // 8 rodadas "diferente" e 4 "igual": a ordem é sorteada pra nunca repetir a mesma resposta
+  // certa mais de 3 vezes seguidas (com 2 sobravam só 15 padrões possíveis, fáceis de
+  // adivinhar) e nunca repetir a mesma base em rodadas vizinhas.
+  (function () {
+    const plan = planSequence(weberPairs, (p) => p.correctType, { maxRun: 3, extraOk: noAdjacentGroup, tries: 60000 });
+    weberPairs = plan ? plan.map((x) => x.item) : interleaveNoAdjacent(weberPairs, (x) => x.group);
+  })();
   const EXPOSICAO_BARRAS_MS = 400;
 
   // ================= DEFINIÇÕES: QUANTIDADE — 12 rodadas =================
@@ -163,7 +204,13 @@
     numerosityPairs.push({ id: `n_${n}_dificil`, group: `${n}`, a: n, b: Math.round(n * NUM_DIFICIL) });
     numerosityPairs.push({ id: `n_${n}_igual`, group: `${n}`, a: n, b: n });
   });
-  numerosityPairs = interleaveNoAdjacent(numerosityPairs, (x) => x.group);
+  // Resposta certa: "igual" ou o lado (A/B) onde o grupo maior aparece. Lado e ordem são
+  // planejados juntos: A e B no máximo 4 vezes cada, nunca a mesma resposta 3x seguidas.
+  const ansNumerosity = (p, swap) => (p.a === p.b ? "igual" : (swap ? "A" : "B"));
+  (function () {
+    const plan = planSequence(numerosityPairs, ansNumerosity, { maxRun: 2, maxPerAnswer: 4, extraOk: noAdjacentGroup, tries: 60000 });
+    numerosityPairs = plan ? plan.map((x) => ({ ...x.item, swap: x.swap })) : interleaveNoAdjacent(numerosityPairs, (x) => x.group);
+  })();
   const EXPOSICAO_PONTOS_MS = 600;
 
   function dotPositions(n, w, h, r) {
@@ -254,17 +301,27 @@
     return `M ${x1} ${y1} A ${rOuter} ${rOuter} 0 ${large} 1 ${x2} ${y2} L ${x3} ${y3} A ${rInner} ${rInner} 0 ${large} 0 ${x4} ${y4} Z`;
   }
   function renderJastrow(idx, total, round, done) {
-    const base = 46 + Math.random() * 18; // 46 a 64
+    const base = 42 + Math.random() * 14; // 42 a 56 (com razão até 1,28 o maior fica < 72)
     const valA = round.ratioA * base, valB = round.ratioB * base;
-    const swapPos = coin(); const topVal = swapPos ? valB : valA; const botVal = swapPos ? valA : valB;
+    const swapPos = round.swap !== undefined ? round.swap : coin();
+    const topVal = swapPos ? valB : valA; const botVal = swapPos ? valA : valB;
     const W = 290, H = 230, cx = W / 2;
     const startDeg = 200, endDeg = 340, innerRatio = 0.55;
-    const cyTop = 60 + topVal * 0.3;
-    const cyBot = cyTop + topVal * 0.3 + 14 + botVal * 0.3 + botVal;
+    // Caixa real de cada forma: do topo do arco (cy - r) até o canto interno das pontas
+    // (cy - innerRatio*sen(20°)*r). O conjunto (rótulo A + forma + vão + forma + rótulo B)
+    // é medido e centralizado no quadro, então o "B" nunca sai da moldura.
+    const lowFrac = innerRatio * Math.sin((20 * Math.PI) / 180);
+    const hTop = (1 - lowFrac) * topVal, hBot = (1 - lowFrac) * botVal;
+    const LABEL = 24, GAP = 16;
+    const y0 = (H - (LABEL + hTop + GAP + hBot + LABEL)) / 2;
+    const topShapeTop = y0 + LABEL, botShapeTop = topShapeTop + hTop + GAP;
+    const cyTop = topShapeTop + topVal, cyBot = botShapeTop + botVal;
     const pathTop = ringSectorPath(cx, cyTop, topVal * innerRatio, topVal, startDeg, endDeg);
     const pathBot = ringSectorPath(cx, cyBot, botVal * innerRatio, botVal, startDeg, endDeg);
-    const content = `<path d="${pathTop}" fill="#6366f1"/><text x="${cx}" y="${cyTop - topVal - 10}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">A</text>
-      <path d="${pathBot}" fill="#22d3ee"/><text x="${cx}" y="${cyBot + botVal + 22}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">B</text>`;
+    const content = `<text x="${cx}" y="${(topShapeTop - 8).toFixed(1)}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">A</text>
+      <path d="${pathTop}" fill="#6366f1"/>
+      <path d="${pathBot}" fill="#22d3ee"/>
+      <text x="${cx}" y="${(botShapeTop + hBot + 20).toFixed(1)}" text-anchor="middle" font-size="16" fill="#1e1b2e" font-weight="700">B</text>`;
     const svg = frameSvg(W, H, content);
     const placeholder = frameSvg(W, H, `<text x="${cx}" y="${H / 2}" text-anchor="middle" font-size="14" fill="#b4aee0">?</text>`);
     const correct = topVal === botVal ? "igual" : (topVal > botVal ? "A" : "B");
@@ -296,7 +353,7 @@
   function renderEbbinghaus(idx, total, round, done) {
     const base = 14 + Math.random() * 10; // 14 a 24
     const valA = round.ratioA * base, valB = round.ratioB * base;
-    const swapPos = coin(); const val1 = swapPos ? valB : valA; const val2 = swapPos ? valA : valB;
+    const swapPos = round.swap !== undefined ? round.swap : coin(); const val1 = swapPos ? valB : valA; const val2 = swapPos ? valA : valB;
     const swapCtx = coin(); const firstSmallCtx = swapCtx;
     const sc = EBB_SCENARIOS[Math.floor(Math.random() * EBB_SCENARIOS.length)];
     const CANVAS = 520, ZONE = 98, MINSEP = 190;
@@ -352,8 +409,11 @@
   // ponta exata não fica mais exposta num vão vazio, que era exatamente o detalhe usado
   // pra medir a inclinação sem precisar comparar as duas linhas. Os traços cruzados agora
   // cobrem quase toda a extensão da linha, incluindo bem perto das pontas.
+  // 2 rodadas paralelas + 3 não paralelas (antes eram 1 + 4, então "Não paralelas" quase
+  // sempre era a resposta certa). A rodada "muito sutil" (2px de desvio em 212px, invisível
+  // na prática) deu lugar à segunda paralela.
   const ZOLLNER_ROUNDS = [
-    { key: "zollner_0", val: 0 }, { key: "zollner_muito_sutil", val: 2 }, { key: "zollner_sutil", val: 4 },
+    { key: "zollner_0", val: 0 }, { key: "zollner_0b", val: 0 }, { key: "zollner_sutil", val: 4 },
     { key: "zollner_moderado", val: 7 }, { key: "zollner_claro", val: 10 },
   ];
   function renderZollner(idx, total, round, done) {
@@ -369,15 +429,17 @@
     }
     const l1 = [80, yTop, 100 + d1, yBot];
     const l2 = [190, yTop, 210 + d2, yBot];
-    const content = `<line x1="${l1[0]}" y1="${l1[1]}" x2="${l1[2]}" y2="${l1[3]}" stroke="#1e1b2e" stroke-width="4"/><line x1="${l2[0]}" y1="${l2[1]}" x2="${l2[2]}" y2="${l2[3]}" stroke="#1e1b2e" stroke-width="4"/>
+    const flip = coin(); // espelha a figura: as duas rodadas paralelas não ficam idênticas
+    const inner = `<line x1="${l1[0]}" y1="${l1[1]}" x2="${l1[2]}" y2="${l1[3]}" stroke="#1e1b2e" stroke-width="4"/><line x1="${l2[0]}" y1="${l2[1]}" x2="${l2[2]}" y2="${l2[3]}" stroke="#1e1b2e" stroke-width="4"/>
       ${ticks(l1[0], l1[1], l1[2], l1[3], 11, 26, 30)}${ticks(l2[0], l2[1], l2[2], l2[3], 11, 26, -30)}`;
+    const content = flip ? `<g transform="translate(300,0) scale(-1,1)">${inner}</g>` : inner;
     const svg = frameSvg(300, 220, content);
     const correct = round.val === 0 ? "paralelas" : "nao_paralelas";
     illusionShell(idx, total, "As duas linhas pretas são paralelas entre si?", svg, [{ label: "Paralelas", value: "paralelas" }, { label: "Não paralelas", value: "nao_paralelas" }], correct, done);
   }
 
   function renderContrasteSimultaneo(idx, total, round, done) {
-    const swapPos = coin(); const leftVal = swapPos ? round.valB : round.valA; const rightVal = swapPos ? round.valA : round.valB;
+    const swapPos = round.swap !== undefined ? round.swap : coin(); const leftVal = swapPos ? round.valB : round.valA; const rightVal = swapPos ? round.valA : round.valB;
     const swapCtx = coin(); const leftDarkBg = swapCtx;
     const g = (v) => `rgb(${v},${v},${v})`;
     const content = `<rect x="10" y="10" width="140" height="140" fill="${leftDarkBg ? "#1e1e1e" : "#f2f2f2"}"/><rect x="50" y="50" width="60" height="60" fill="${g(leftVal)}"/>
@@ -390,7 +452,7 @@
   }
 
   function renderContrasteCor(idx, total, round, done) {
-    const swapPos = coin(); const leftVal = swapPos ? round.valB : round.valA; const rightVal = swapPos ? round.valA : round.valB;
+    const swapPos = round.swap !== undefined ? round.swap : coin(); const leftVal = swapPos ? round.valB : round.valA; const rightVal = swapPos ? round.valA : round.valB;
     const swapCtx = coin(); const leftBlueBg = swapCtx;
     const warm = (w) => `rgb(${Math.round(150 + w)},150,${Math.round(150 - w)})`;
     const content = `<rect x="10" y="10" width="140" height="140" fill="${leftBlueBg ? "#1e3a8a" : "#fbbf24"}"/><rect x="50" y="50" width="60" height="60" fill="${warm(leftVal)}"/>
@@ -502,9 +564,11 @@
   const STROOP_COLORS = [{ name: "Vermelho", hex: "#dc2626" }, { name: "Azul", hex: "#2563eb" }, { name: "Verde", hex: "#16a34a" }, { name: "Amarelo", hex: "#ca8a04" }];
   const STROOP_TIMER_MS = 1000;
   const STROOP_REVEAL_DELAY_MS = 200;
-  function renderStroopTrial(completedSoFar, target, done) {
+  function renderStroopTrial(completedSoFar, target, lastInkHex, done) {
     const word = STROOP_COLORS[Math.floor(Math.random() * 4)];
-    const ink = STROOP_COLORS[Math.floor(Math.random() * 4)];
+    // A resposta certa é a cor da tinta: nunca a mesma da tentativa anterior.
+    const inkPool = STROOP_COLORS.filter((c) => c.hex !== lastInkHex);
+    const ink = inkPool[Math.floor(Math.random() * inkPool.length)];
     const congruent = word.name === ink.name;
     let answered = false;
     render(`<div class="card">${topProgress(globalOffset + completedSoFar + 1)}<div class="progress">Rodada ${completedSoFar + 1} de ${target}</div>
@@ -520,20 +584,21 @@
       t0 = Date.now();
       const bar = document.getElementById("sTimer");
       if (bar) requestAnimationFrame(() => { bar.style.transition = `width ${STROOP_TIMER_MS}ms linear`; bar.style.width = "0%"; });
-      const timeoutId = setTimeout(() => { if (!answered) { answered = true; done({ timedOut: true }); } }, STROOP_TIMER_MS);
+      const timeoutId = setTimeout(() => { if (!answered) { answered = true; done({ timedOut: true, inkHex: ink.hex }); } }, STROOP_TIMER_MS);
       STROOP_COLORS.forEach((c, k) => attach(`c${k}`, () => {
         if (answered) return; answered = true; clearTimeout(timeoutId);
-        done({ isCorrect: c.hex === ink.hex, reactionMs: Date.now() - t0, congruent, timedOut: false });
+        done({ isCorrect: c.hex === ink.hex, reactionMs: Date.now() - t0, congruent, timedOut: false, inkHex: ink.hex });
       }));
     }, STROOP_REVEAL_DELAY_MS);
   }
   function runStroopBlock(onBlockDone) {
     const target = 7, maxAttempts = 20;
-    let completed = 0, attempts = 0;
+    let completed = 0, attempts = 0, lastInk = null;
     function attempt() {
       if (completed >= target || attempts >= maxAttempts) { onBlockDone(); return; }
       attempts++;
-      renderStroopTrial(completed, target, (result) => {
+      renderStroopTrial(completed, target, lastInk, (result) => {
+        lastInk = result.inkHex;
         if (result.timedOut) { miniLoading(attempt); return; }
         responses.illusions.push({ id: `stroop_${completed}`, isCorrect: result.isCorrect, reactionMs: result.reactionMs, congruent: result.congruent });
         completed++; miniLoading(attempt);
@@ -543,8 +608,15 @@
   }
 
   // ================= MOTOR GENÉRICO DE BLOCO =================
-  function runSimpleBlock(variants, renderFn, onBlockDone) {
-    const seq = shuffle(variants);
+  // planOpts (opcional): { answerFn, maxRun, maxPerAnswer } — ver planSequence. Com ele, a
+  // ordem e o lado de cada rodada são escolhidos pra variar a resposta certa.
+  function runSimpleBlock(variants, renderFn, onBlockDone, planOpts) {
+    let seq = null;
+    if (planOpts) {
+      const plan = planSequence(variants, planOpts.answerFn, planOpts);
+      if (plan) seq = plan.map((x) => ({ ...x.item, swap: x.swap }));
+    }
+    if (!seq) seq = shuffle(variants);
     let i = 0;
     function next() {
       if (i >= seq.length) { onBlockDone(); return; }
@@ -557,7 +629,10 @@
     next();
   }
   function runCegueiraBlock(onBlockDone) {
-    const seq = shuffle(CB_KINDS.map((k, idx) => ({ kind: k, key: `cegueira_${idx}` })));
+    const items = CB_KINDS.map((k, idx) => ({ kind: k, key: `cegueira_${idx}` }));
+    const noTwoNone = (arr) => arr.every((it, j) => j === 0 || !(it.kind === "none" && arr[j - 1].kind === "none"));
+    const plan = planSequence(items, (v) => (v.kind === "none" ? "nada" : "mudou"), { maxRun: 4, extraOk: noTwoNone });
+    const seq = plan ? plan.map((x) => x.item) : shuffle(items);
     let i = 0;
     function next() {
       if (i >= seq.length) { onBlockDone(); return; }
@@ -602,7 +677,7 @@
     function round(i) {
       if (i >= numerosityPairs.length) { onBlockDone(); return; }
       const pair = numerosityPairs[i];
-      const swap = coin(); const na = swap ? pair.b : pair.a; const nb = swap ? pair.a : pair.b;
+      const swap = pair.swap !== undefined ? pair.swap : coin(); const na = swap ? pair.b : pair.a; const nb = swap ? pair.a : pair.b;
       const correctSide = na === nb ? "igual" : (na > nb ? "A" : "B");
       render(`<div class="card">${topProgress(globalOffset + i + 1)}<div class="progress">Rodada ${i + 1} de ${numerosityPairs.length}</div>
         <h1>Observe os pontos</h1><div class="caption">Eles vão sumir — não dá tempo de contar.</div>
@@ -627,22 +702,33 @@
 
   // ================= SEQUÊNCIA DE BLOCOS =================
   const EBB_ROUNDS = ratioSet5("ebb");
-  const JASTROW_ROUNDS = ratioSet5("jastrow", 1.02, 1.18); // diferença "pouco" ainda mais sutil — efeito Jastrow é forte, não precisa de muita diferença real pra confundir
+  // "pouco" 8% / "muito" 28%. Antes era 2% / 18%: 2% são ~1px, invisível — três das cinco
+  // rodadas pareciam iguais e a pessoa não via as formas mudarem de tamanho.
+  const JASTROW_ROUNDS = ratioSet5("jastrow", 1.08, 1.28);
   const VH_ROUNDS = comparativeSet5("vh", 150, 1.08, 1.3);
   const CONTRASTE_ROUNDS = comparativeSetAbs5("contraste", 130, 10, 25);
   const COR_ROUNDS = comparativeSetAbs5("cor", 0, 12, 28);
   const CB_REFS = CB_KINDS.map((k, i) => ({ key: `cegueira_${i}` }));
   const STROOP_REFS = [0, 1, 2, 3, 4, 5, 6].map((i) => ({ key: `stroop_${i}` }));
 
+  // Resposta certa de cada rodada em função do lado sorteado — usada pelo planSequence.
+  const ansSizeAB = (v, swap) => { const top = swap ? v.ratioB : v.ratioA, bot = swap ? v.ratioA : v.ratioB; return top === bot ? "igual" : (top > bot ? "A" : "B"); };
+  const ansVH = (v) => (v.valA === v.valB ? "igual" : (v.valA > v.valB ? "vertical" : "horizontal"));
+  const ansZollner = (v) => (v.val === 0 ? "paralelas" : "nao_paralelas");
+  const ansGray = (v, swap) => { const l = swap ? v.valB : v.valA, r = swap ? v.valA : v.valB; return l === r ? "igual" : (l < r ? "esquerdo" : "direito"); };
+  const ansWarm = (v, swap) => { const l = swap ? v.valB : v.valA, r = swap ? v.valA : v.valB; return l === r ? "igual" : (l > r ? "esquerdo" : "direito"); };
+  // Blocos de 5 rodadas: nenhuma resposta repetida em sequência e A/B (ou esq./dir.) 2x cada.
+  const PLAN_5 = (answerFn) => ({ answerFn, maxRun: 1, maxPerAnswer: 2 });
+
   const BLOCKS_ORDERED = [
     { title: "Tamanho", count: weberPairs.length, introSeconds: 2, objetivo: "Você vai ver duas barras verticais por menos de meio segundo, e depois elas somem da tela. Sua tarefa: dizer se as duas barras tinham a mesma altura, ou se uma era mais alta que a outra.", run: playerWeberBlock },
     { title: "Quantidade", count: numerosityPairs.length, introSeconds: 2, objetivo: "Você vai ver dois grupos de pontos por menos de um segundo, e depois eles somem. Sua tarefa: dizer qual grupo parecia ter mais pontos, ou se os dois grupos pareciam ter a mesma quantidade.", run: playerNumerosityBlock },
-    { title: "Tamanho das formas", count: JASTROW_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas formas em arco, uma em cima da outra, por menos de um segundo antes de sumirem. Sua tarefa: dizer qual das duas formas parecia maior, ou se as duas pareciam do mesmo tamanho.", run: (onDone) => runSimpleBlock(JASTROW_ROUNDS, renderJastrow, onDone) },
-    { title: "Tamanho de círculos", count: EBB_ROUNDS.length, introSeconds: 2, objetivo: "Dois grupos (rotulados A e B) vão aparecer em posições soltas na tela — cada um é um círculo azul cercado por outros círculos ao redor (o número, tamanho e posição desses círculos ao redor varia a cada rodada). Sua tarefa: dizer qual dos dois círculos azuis (do meio de cada grupo) parece maior, ou se os dois parecem do mesmo tamanho.", run: (onDone) => runSimpleBlock(EBB_ROUNDS, renderEbbinghaus, onDone) },
-    { title: "Vertical x horizontal", count: VH_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas linhas formando um T: uma na vertical e uma na horizontal. Sua tarefa: dizer qual das duas linhas parece mais comprida, ou se as duas parecem do mesmo tamanho.", run: (onDone) => runSimpleBlock(VH_ROUNDS, renderVH, onDone) },
-    { title: "Linhas paralelas", count: ZOLLNER_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas linhas pretas na vertical, cada uma cruzada por pequenos traços diagonais. Sua tarefa: dizer se essas duas linhas pretas são paralelas entre si (ou seja, se apontam exatamente na mesma direção) ou não.", run: (onDone) => runSimpleBlock(ZOLLNER_ROUNDS, renderZollner, onDone) },
-    { title: "Tons de cinza", count: CONTRASTE_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados cinzas pequenos, cada um no centro de um fundo diferente (um escuro, um claro). Sua tarefa: dizer qual dos dois quadrados cinzas parece mais escuro, ou se os dois parecem exatamente do mesmo tom.", run: (onDone) => runSimpleBlock(CONTRASTE_ROUNDS, renderContrasteSimultaneo, onDone) },
-    { title: "Tons de cor", count: COR_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados coloridos pequenos, cada um no centro de um fundo diferente (um azul, um amarelo). Sua tarefa: dizer qual dos dois quadrados parece ter uma cor mais quente (mais alaranjada), ou se as duas cores parecem iguais.", run: (onDone) => runSimpleBlock(COR_ROUNDS, renderContrasteCor, onDone) },
+    { title: "Tamanho das formas", count: JASTROW_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas formas em arco, uma em cima da outra, por menos de um segundo antes de sumirem. Sua tarefa: dizer qual das duas formas parecia maior, ou se as duas pareciam do mesmo tamanho.", run: (onDone) => runSimpleBlock(JASTROW_ROUNDS, renderJastrow, onDone, PLAN_5(ansSizeAB)) },
+    { title: "Tamanho de círculos", count: EBB_ROUNDS.length, introSeconds: 2, objetivo: "Dois grupos (rotulados A e B) vão aparecer em posições soltas na tela — cada um é um círculo azul cercado por outros círculos ao redor (o número, tamanho e posição desses círculos ao redor varia a cada rodada). Sua tarefa: dizer qual dos dois círculos azuis (do meio de cada grupo) parece maior, ou se os dois parecem do mesmo tamanho.", run: (onDone) => runSimpleBlock(EBB_ROUNDS, renderEbbinghaus, onDone, PLAN_5(ansSizeAB)) },
+    { title: "Vertical x horizontal", count: VH_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas linhas formando um T: uma na vertical e uma na horizontal. Sua tarefa: dizer qual das duas linhas parece mais comprida, ou se as duas parecem do mesmo tamanho.", run: (onDone) => runSimpleBlock(VH_ROUNDS, renderVH, onDone, PLAN_5(ansVH)) },
+    { title: "Linhas paralelas", count: ZOLLNER_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver duas linhas pretas na vertical, cada uma cruzada por pequenos traços diagonais. Sua tarefa: dizer se essas duas linhas pretas são paralelas entre si (ou seja, se apontam exatamente na mesma direção) ou não.", run: (onDone) => runSimpleBlock(ZOLLNER_ROUNDS, renderZollner, onDone, { answerFn: ansZollner, maxRun: 2, maxPerAnswer: 3 }) },
+    { title: "Tons de cinza", count: CONTRASTE_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados cinzas pequenos, cada um no centro de um fundo diferente (um escuro, um claro). Sua tarefa: dizer qual dos dois quadrados cinzas parece mais escuro, ou se os dois parecem exatamente do mesmo tom.", run: (onDone) => runSimpleBlock(CONTRASTE_ROUNDS, renderContrasteSimultaneo, onDone, PLAN_5(ansGray)) },
+    { title: "Tons de cor", count: COR_ROUNDS.length, introSeconds: 2, objetivo: "Você vai ver dois quadrados coloridos pequenos, cada um no centro de um fundo diferente (um azul, um amarelo). Sua tarefa: dizer qual dos dois quadrados parece ter uma cor mais quente (mais alaranjada), ou se as duas cores parecem iguais.", run: (onDone) => runSimpleBlock(COR_ROUNDS, renderContrasteCor, onDone, PLAN_5(ansWarm)) },
     { title: "Observação de cena", count: CB_KINDS.length, introSeconds: 2, objetivo: "Uma cena cheia de formas coloridas vai aparecer e piscar algumas vezes, rapidamente. Preste bastante atenção em cada forma individualmente. Quando ela parar de piscar, você vai apontar qual das formas mudou (de cor, tamanho ou posição, ou ficou mais fraca/apagada) — ou dizer que nada mudou.", run: runCegueiraBlock },
     {
       title: "Nomeação de cores", count: STROOP_REFS.length, introSeconds: 4,
@@ -751,8 +837,8 @@
   // responses.illusions (ex.: "jastrow_", "stroop_"), pra poder separar o placar
   // pessoal por jogo sem precisar mudar todos os pontos que registram resposta.
   const BLOCK_PREFIXES = [
-    { title: "Tamanho", prefix: null, list: () => responses.weber },
-    { title: "Quantidade", prefix: null, list: () => responses.numerosity },
+    { title: "Tamanho", source: "weber" },
+    { title: "Quantidade", source: "numerosity" },
     { title: "Tamanho das formas", prefix: "jastrow_" },
     { title: "Tamanho de círculos", prefix: "ebb_" },
     { title: "Vertical x horizontal", prefix: "vh_" },
@@ -762,12 +848,16 @@
     { title: "Observação de cena", prefix: "cegueira_" },
     { title: "Nomeação de cores", prefix: "stroop_" },
   ];
-  function perGameScores() {
+  // Placar por jogo a partir das listas de respostas (do aluno ou vindas do banco).
+  function gameScores(weber, numerosity, illusions) {
     return BLOCK_PREFIXES.map((b) => {
-      const list = b.list ? b.list() : responses.illusions.filter((x) => x.id.startsWith(b.prefix));
+      const list = b.source === "weber" ? weber : b.source === "numerosity" ? numerosity
+        : illusions.filter((x) => x && typeof x.id === "string" && x.id.startsWith(b.prefix));
       return { title: b.title, ...scoreOf(list) };
     });
   }
+  function perGameScores() { return gameScores(responses.weber, responses.numerosity, responses.illusions); }
+  function pctOf(correct, total) { return total ? Math.round((correct / total) * 100) : null; }
 
   async function playerFinish() {
     render(`<div class="card"><h1>Calculando seu resultado...</h1><p class="lead">Só um instante.</p></div>`);
@@ -780,7 +870,7 @@
     render(`<div class="card"><h1 style="font-size:26px; background:linear-gradient(135deg,#06b6d4,#8b5cf6,#ec4899); -webkit-background-clip:text; background-clip:text; color:transparent;">🎉 Seu resultado, ${esc(studentName)}</h1>
       <p class="lead" style="margin-bottom:4px">Você acertou <b>${totalCorrect} de ${totalQuestions}</b> rodadas.</p>
       <p class="lead" style="margin-bottom:8px; font-size:13px;">Tempo total: <b>${fmtDuration(durationMs)}</b></p>
-      ${perGame.map((g) => `<div class="score-row"><span>${g.title}</span><b>${g.correct}/${g.total}</b></div>`).join("")}
+      ${perGame.map((g) => `<div class="score-row"><span>${g.title}</span><b>${g.correct}/${g.total} · ${pctOf(g.correct, g.total) ?? 0}%</b></div>`).join("")}
       <p class="lead" style="margin-top:16px; font-size:13px;">Suas respostas foram enviadas para o placar da turma.</p>
       <a class="linklike" href="${painelHref}" target="_blank" rel="noopener">Ver o painel ao vivo da turma →</a>
     </div>`);
@@ -802,17 +892,19 @@
     return id;
   }
 
-  function segBar(label, counts, colorMap) {
-    const total = Object.values(counts).reduce((a, b) => a + b, 0) || 1;
-    const segs = Object.entries(counts).map(([k, v]) => { const pct = Math.round((v / total) * 100); return `<div class="dash-bar-seg" style="width:${pct}%; background:${colorMap[k] || '#94a3b8'}">${pct > 10 ? pct + '%' : ''}</div>`; }).join("");
-    const legend = Object.entries(counts).map(([k, v]) => `${k}: ${v}`).join(" · ");
-    return `<div class="dash-row"><div class="q">${label}</div><div class="dash-bar-bg">${segs}</div><div class="small">${legend} · total: ${total}</div></div>`;
+  // O QR code precisa sobreviver ao refresh de 3s do painel (render() troca o HTML todo).
+  let qrLink = null;
+  function drawQr() {
+    const box = document.getElementById("qrbox");
+    if (!box || !qrLink) return;
+    box.innerHTML = "";
+    new QRCode(box, { text: qrLink, width: 180, height: 180 });
   }
-  function aggregateById(canonicalList, allResp, extractor, getId) {
-    const counts = {};
-    canonicalList.forEach((item) => { counts[getId(item)] = { acertou: 0, errou: 0 }; });
-    allResp.forEach((r) => extractor(r).forEach((entry) => { if (counts[entry.id]) counts[entry.id][entry.isCorrect ? "acertou" : "errou"]++; }));
-    return counts;
+  function pctTint(pct) {
+    if (pct === null) return "transparent";
+    if (pct >= 70) return "rgba(22,163,74,0.16)";
+    if (pct >= 40) return "rgba(245,158,11,0.20)";
+    return "rgba(220,38,38,0.14)";
   }
 
   async function renderPainel() {
@@ -824,54 +916,35 @@
       allResp = data || [];
     } catch (e) { /* sem respostas ainda */ }
 
-    const totals = allResp.filter((r) => r.finished).map((r) => (r.weber || []).filter((x) => x.isCorrect).length + (r.numerosity || []).filter((x) => x.isCorrect).length + (r.illusions || []).filter((x) => x.isCorrect).length);
-    const avg = totals.length ? (totals.reduce((a, b) => a + b, 0) / totals.length).toFixed(1) : "-";
+    const rows = allResp.map((r) => {
+      const games = gameScores(r.weber || [], r.numerosity || [], r.illusions || []);
+      return { name: r.student_name || "(sem nome)", games, totalCorrect: games.reduce((s, g) => s + g.correct, 0), createdAt: r.created_at || "", finished: !!r.finished };
+    }).sort((a, b) => (b.totalCorrect - a.totalCorrect) || a.createdAt.localeCompare(b.createdAt));
+    const playingNow = rows.filter((p) => !p.finished).length;
 
-    const perStudent = allResp.map((r) => {
-      const correct = (r.weber || []).filter((x) => x.isCorrect).length + (r.numerosity || []).filter((x) => x.isCorrect).length + (r.illusions || []).filter((x) => x.isCorrect).length;
-      const total = (r.weber || []).length + (r.numerosity || []).length + (r.illusions || []).length;
-      return { name: r.student_name || "(sem nome)", correct, total, durationMs: r.duration_ms || 0, createdAt: r.created_at || "", finished: !!r.finished };
-    }).sort((a, b) => (Number(a.finished) - Number(b.finished)) || (b.createdAt || "").localeCompare(a.createdAt || ""));
-    const playingNow = perStudent.filter((p) => !p.finished).length;
+    // Acerto da turma por jogo: soma de acertos / soma de respostas dadas naquele jogo.
+    const classAgg = BLOCK_PREFIXES.map((_, gi) => rows.reduce((acc, r) => ({ correct: acc.correct + r.games[gi].correct, total: acc.total + r.games[gi].total }), { correct: 0, total: 0 }));
 
-    const wCounts = aggregateById(weberPairs, allResp, (r) => r.weber || [], (p) => p.id);
-    const nCounts = aggregateById(numerosityPairs, allResp, (r) => r.numerosity || [], (p) => p.id);
-    const ALL_ILLUSION_DEFS = [...JASTROW_ROUNDS, ...EBB_ROUNDS, ...VH_ROUNDS, ...ZOLLNER_ROUNDS, ...CONTRASTE_ROUNDS, ...COR_ROUNDS, ...CB_REFS, ...STROOP_REFS];
-    const iCounts = aggregateById(ALL_ILLUSION_DEFS, allResp, (r) => r.illusions || [], (s) => s.key);
+    const head = `<tr><th class="name-col">Nome</th>${BLOCK_PREFIXES.map((b) => `<th>${b.title}</th>`).join("")}</tr>`;
+    const classRow = `<tr class="class-row"><td class="name-col">Turma</td>${classAgg.map((g) => {
+      const pct = pctOf(g.correct, g.total);
+      return pct === null ? `<td class="pcell">—</td>` : `<td class="pcell"><b>${pct}%</b><span>${g.correct}/${g.total}</span></td>`;
+    }).join("")}</tr>`;
+    const body = rows.map((r) => `<tr><td class="name-col">${esc(r.name)}</td>${r.games.map((g) => {
+      const pct = pctOf(g.correct, g.total);
+      return pct === null ? `<td class="pcell">—</td>` : `<td class="pcell" style="background:${pctTint(pct)}"><b>${g.correct}/${g.total}</b><span>${pct}%</span></td>`;
+    }).join("")}</tr>`).join("");
 
-    let congT = 0, congN = 0, incT = 0, incN = 0;
-    allResp.forEach((r) => (r.illusions || []).forEach((e) => {
-      if (typeof e.reactionMs === "number" && e.congruent !== undefined) {
-        if (e.congruent) { congT += e.reactionMs; congN++; } else { incT += e.reactionMs; incN++; }
-      }
-    }));
-    const congAvg = congN ? Math.round(congT / congN) : null;
-    const incAvg = incN ? Math.round(incT / incN) : null;
-
-    render(`<div class="card" style="max-width:720px; text-align:left; min-height:auto;">
-      <h2 style="text-align:center">Painel do apresentador</h2><h1 style="text-align:center">Resultados ao vivo — ${allResp.length} participante(s)</h1>
-      <p class="small" style="text-align:center">${playingNow} jogando agora · ${allResp.length - playingNow} terminaram</p>
-      <p class="small" style="text-align:center; margin-bottom:12px">Pontuação média de quem terminou: <b>${avg} / ${TOTAL_STEPS}</b></p>
+    render(`<div class="card" style="max-width:1180px; text-align:left; min-height:auto;">
+      <h2 style="text-align:center">Painel do apresentador</h2><h1 style="text-align:center">Placar ao vivo — ${rows.length} participante(s)</h1>
+      <p class="small" style="text-align:center; margin-bottom:12px">${playingNow} jogando agora · ${rows.length - playingNow} terminaram</p>
       <div class="btn-row" style="justify-content:space-between"><button class="btn secondary" id="reset">Nova rodada (zera respostas)</button><button class="btn secondary" id="qr">Gerar QR code do link</button></div>
       <div id="qrbox"></div>
-      <h2 style="margin-top:20px">Participantes</h2>
-      ${perStudent.length ? `<table class="participants-table"><thead><tr><th>Nome</th><th>Acertos</th><th>Respondidas</th><th>Tempo</th><th>Status</th></tr></thead><tbody>${perStudent.map((p) => `<tr><td>${esc(p.name)}</td><td>${p.correct}</td><td>${p.total}/${TOTAL_STEPS}</td><td>${p.finished ? fmtDuration(p.durationMs) : "—"}</td><td>${p.finished ? "✅ Terminou" : "🎮 Jogando"}</td></tr>`).join("")}</tbody></table>` : `<p class="small">Ninguém respondeu ainda nesta rodada.</p>`}
-      <h2 style="margin-top:20px">Tamanho</h2>
-      ${[...weberPairs].sort((a, b) => a.id.localeCompare(b.id)).map((p) => segBar(p.id, wCounts[p.id], { acertou: "#16a34a", errou: "#dc2626" })).join("")}
-      <h2>Quantidade</h2>
-      ${[...numerosityPairs].sort((a, b) => a.id.localeCompare(b.id)).map((p) => segBar(p.id, nCounts[p.id], { acertou: "#16a34a", errou: "#dc2626" })).join("")}
-      <h2>Demais etapas</h2>
-      ${(() => { if (congN + incN === 0) return ""; return `<div class="note">Nomeação de cores — tempo médio: <b>congruente ${congAvg ?? "-"} ms</b> (n=${congN}) · <b>incongruente ${incAvg ?? "-"} ms</b> (n=${incN}).</div>`; })()}
-      ${[...ALL_ILLUSION_DEFS].sort((a, b) => a.key.localeCompare(b.key)).map((s) => segBar(s.key, iCounts[s.key], { acertou: "#16a34a", errou: "#dc2626" })).join("")}
-      <div class="note">Rodada atual: <b>${roundId}</b>. Atualiza sozinho a cada 3s. Peça pra turma acessar o link <b>sem</b> "?painel=1" no celular.</div>
+      ${rows.length ? `<div class="table-scroll"><table class="score-table"><thead>${head}</thead><tbody>${classRow}${body}</tbody></table></div>` : `<p class="small" style="margin-top:16px">Ninguém respondeu ainda nesta rodada.</p>`}
     </div>`);
     document.getElementById("reset").addEventListener("click", async () => { await newRound(); renderPainel(); });
-    document.getElementById("qr").addEventListener("click", () => {
-      const link = prompt("Cole aqui o link público deste artefato (sem ?painel=1):", window.location.href.split("?")[0]);
-      if (!link) return;
-      const box = document.getElementById("qrbox"); box.innerHTML = "";
-      new QRCode(box, { text: link, width: 180, height: 180 });
-    });
+    document.getElementById("qr").addEventListener("click", () => { qrLink = window.location.href.split("?")[0]; drawQr(); });
+    drawQr();
   }
   function startPainel() { renderPainel(); pollTimer = setInterval(renderPainel, 3000); }
 
